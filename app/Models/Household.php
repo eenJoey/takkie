@@ -27,6 +27,11 @@ class Household extends Model
         return $this->hasMany(TodoList::class);
     }
 
+    public function invites(): HasMany
+    {
+        return $this->hasMany(HouseholdInvite::class);
+    }
+
     public function addMember(User $user, HouseholdRole $role = HouseholdRole::Member): void
     {
         $this->users()->syncWithoutDetaching([

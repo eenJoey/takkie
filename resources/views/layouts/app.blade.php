@@ -4,6 +4,7 @@
     // Navigatie volgens vinkie's AppShell. Items komen erbij per mijlpaal (zie MIGRATIE-PLAN.md, sectie k).
     $navItems = [
         ['route' => 'lists.index', 'active' => 'lists.*', 'label' => 'Lijstjes', 'icon' => 'list-checks'],
+        ['route' => 'household', 'active' => 'household', 'label' => 'Huishouden', 'icon' => 'users'],
     ];
     $household = app(\App\Support\CurrentHousehold::class)->get();
 @endphp
@@ -31,6 +32,9 @@
                     <a href="{{ route('lists.index') }}" wire:navigate>
                         <img src="{{ asset('images/takkie-text-logo.png') }}" alt="Takkie" class="h-auto w-24">
                     </a>
+                </div>
+                <div class="px-4 pb-4">
+                    <livewire:shared.household-switcher key="switcher-sidebar" />
                 </div>
                 <nav class="flex-1 space-y-1 px-3">
                     @foreach ($navItems as $item)
@@ -63,7 +67,10 @@
                         <a href="{{ route('lists.index') }}" wire:navigate class="lg:hidden">
                             <img src="{{ asset('images/takkie-text-logo.png') }}" alt="Takkie" class="h-auto w-16">
                         </a>
-                        <h2 class="min-w-0 flex-1 truncate text-lg font-bold lg:text-left">{{ $household?->name ?? 'Welkom' }}</h2>
+                        <div class="min-w-0 max-w-[200px] flex-1 lg:hidden">
+                            <livewire:shared.household-switcher key="switcher-header" />
+                        </div>
+                        <h2 class="hidden min-w-0 flex-1 truncate text-lg font-bold lg:block">{{ $household?->name ?? 'Welkom' }}</h2>
                         {{-- Op mobiel tijdelijk hier; in M8 verhuist uitloggen naar de profielpagina (zoals vinkie lovable) --}}
                         <form method="POST" action="{{ route('logout') }}" class="lg:hidden">
                             @csrf

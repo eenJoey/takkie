@@ -2,16 +2,15 @@
 
 namespace Database\Seeders;
 
+use App\Actions\CreateHousehold;
 use App\Enums\CategoryColor;
-use App\Enums\HouseholdRole;
-use App\Models\Household;
 use App\Models\User;
 use App\Support\CurrentHousehold;
 use Illuminate\Database\Seeder;
 
 /**
  * Alleen voor lokaal/TEST: één testgebruiker met één huishouden en een voorbeeldlijst.
- * Inloggen lokaal via /login (tijdelijk tot M2).
+ * Inloggen via /login met het testaccount (wachtwoord: zie UserFactory).
  */
 class DatabaseSeeder extends Seeder
 {
@@ -22,9 +21,7 @@ class DatabaseSeeder extends Seeder
             'email' => 'test@example.com',
         ]);
 
-        $household = Household::create(['name' => 'Testhuishouden']);
-        $household->addMember($user, HouseholdRole::Owner);
-        $user->update(['current_household_id' => $household->id]);
+        $household = app(CreateHousehold::class)->handle($user, 'Testhuishouden');
 
         app(CurrentHousehold::class)->set($household);
 

@@ -1,4 +1,4 @@
-@props(['title' => null])
+@props(['title' => null, 'width' => 'max-w-md'])
 
 {{-- Layout voor de inlogschermen: kaart op een gradient, zoals vinkie's /login, /forgot-password en /reset-password --}}
 <!DOCTYPE html>
@@ -18,7 +18,7 @@
         <x-toaster />
 
         <div class="flex min-h-screen items-center justify-center bg-linear-to-br from-background via-secondary/40 to-accent/30 px-4 py-12">
-            <div class="w-full max-w-md">
+            <div class="w-full {{ $width }}">
                 {{ $slot }}
             </div>
         </div>
