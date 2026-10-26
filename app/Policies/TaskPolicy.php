@@ -12,6 +12,11 @@ class TaskPolicy
         return $user->isMemberOf($task->household_id);
     }
 
+    public function complete(User $user, Task $task): bool
+    {
+        return $user->isMemberOf($task->household_id);
+    }
+
     public function delete(User $user, Task $task): bool
     {
         return $user->isMemberOf($task->household_id);
