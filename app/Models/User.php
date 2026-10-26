@@ -10,15 +10,17 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use NotificationChannels\WebPush\HasPushSubscriptions;
 
 #[Fillable(['name', 'email', 'password', 'current_household_id', 'google_id', 'avatar'])]
 #[Hidden(['password', 'remember_token', 'google_id'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, HasPushSubscriptions, Notifiable;
 
     /**
      * Get the attributes that should be cast.
@@ -39,6 +41,11 @@ class User extends Authenticatable
             ->using(HouseholdMember::class)
             ->withPivot(['id', 'role', 'points_balance', 'joined_at'])
             ->withTimestamps();
+    }
+
+    public function notificationSettings(): HasOne
+    {
+        return $this->hasOne(NotificationSetting::class);
     }
 
     public function currentHousehold(): BelongsTo
