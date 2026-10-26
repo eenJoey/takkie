@@ -6,6 +6,7 @@ use App\Livewire\Household;
 use App\Livewire\InviteShow;
 use App\Livewire\Lists;
 use App\Livewire\Onboarding;
+use App\Livewire\Recipes;
 use App\Livewire\Rewards;
 use App\Livewire\Today;
 use Illuminate\Support\Facades\Route;
@@ -19,6 +20,9 @@ Route::middleware('guest')->group(function () {
 
 Route::post('/logout', LogoutController::class)->middleware('auth')->name('logout');
 
+// Openbare recepten ontdekken: ook uitgelogd (M7). Vóór /recipes/{slug} registreren.
+Route::get('/recipes/discover', Recipes\Discover::class)->name('recipes.discover');
+
 // Uitnodiging: ook uitgelogd te bekijken (M3)
 Route::get('/invite/{code}', InviteShow::class)->name('invites.show');
 
@@ -31,5 +35,11 @@ Route::middleware(['auth', 'household'])->group(function () {
     Route::get('/lists/{list}', Lists\Show::class)->name('lists.show');
     Route::get('/dashboard', Today::class)->name('dashboard');
     Route::get('/rewards', Rewards\Index::class)->name('rewards');
+    Route::get('/recipes', Recipes\Index::class)->name('recipes.index');
+    Route::get('/recipes/create', Recipes\Form::class)->name('recipes.create');
+    Route::get('/recipes/{recipe:slug}/edit', Recipes\Form::class)->name('recipes.edit');
     Route::get('/household', Household\Index::class)->name('household');
 });
+
+// Recept bekijken: leden altijd, anderen alleen als het openbaar is (M6/M7). Als laatste, vanwege {slug}.
+Route::get('/recipes/{slug}', Recipes\Show::class)->name('recipes.show');
