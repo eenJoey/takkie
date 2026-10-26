@@ -7,7 +7,7 @@
     @if ($this->tasksList)
         {{-- vinkie QuickCards --}}
         <div class="grid gap-3 sm:grid-cols-2">
-        <a href="{{ route('lists.show', $this->tasksList) }}" wire:navigate
+        <a href="{{ route('tasks') }}" wire:navigate
             class="group flex items-center justify-between rounded-2xl bg-card p-4 shadow-card transition hover:shadow-soft">
             <div class="flex items-center gap-3">
                 <div class="flex size-10 items-center justify-center rounded-xl bg-gradient-warm text-primary-foreground">

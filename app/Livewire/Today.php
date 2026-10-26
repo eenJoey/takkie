@@ -7,6 +7,7 @@ use App\Enums\ListType;
 use App\Exceptions\TaskException;
 use App\Models\Task;
 use App\Models\TodoList;
+use App\Support\CurrentHousehold;
 use App\Support\Today as TodayDate;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -72,9 +73,9 @@ class Today extends Component
     }
 
     #[Computed]
-    public function tasksList(): ?TodoList
+    public function tasksList(): TodoList
     {
-        return TodoList::where('type', ListType::Tasks)->first();
+        return app(CurrentHousehold::class)->get()->tasksList();
     }
 
     public function label(): string

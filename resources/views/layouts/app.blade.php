@@ -5,6 +5,7 @@
     $navItems = [
         ['route' => 'lists.index', 'active' => 'lists.*', 'label' => 'Lijstjes', 'icon' => 'list-checks'],
         ['route' => 'dashboard', 'active' => 'dashboard', 'label' => 'Vandaag', 'icon' => 'home'],
+        ['route' => 'tasks', 'active' => 'tasks', 'label' => 'Taken', 'icon' => 'clipboard-check'],
         ['route' => 'rewards', 'active' => 'rewards', 'label' => 'Beloningen', 'icon' => 'gift'],
         ['route' => 'recipes.index', 'active' => 'recipes.*', 'label' => 'Recepten', 'icon' => 'book-open'],
         ['route' => 'household', 'active' => 'household', 'label' => 'Huishouden', 'icon' => 'users'],

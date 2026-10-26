@@ -3,9 +3,7 @@
 namespace App\Actions;
 
 use App\Enums\HouseholdRole;
-use App\Enums\ListType;
 use App\Models\Household;
-use App\Models\TodoList;
 use App\Models\User;
 use App\Support\CurrentHousehold;
 use Illuminate\Support\Facades\DB;
@@ -24,11 +22,7 @@ class CreateHousehold
             $household = Household::create(['name' => trim($name)]);
             $household->addMember($user, HouseholdRole::Owner);
 
-            $this->current->runAs($household, fn () => TodoList::create([
-                'name' => 'Huishoudtaken',
-                'type' => ListType::Tasks,
-                'created_by' => $user->id,
-            ]));
+            $household->tasksList()->forceFill(['created_by' => $user->id])->save();
 
             $user->forceFill(['current_household_id' => $household->id])->save();
             $this->current->forget();
