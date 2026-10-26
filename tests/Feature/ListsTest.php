@@ -53,6 +53,24 @@ class ListsTest extends TestCase
             ->assertDontSee('Andermans lijst');
     }
 
+    public function test_tasks_list_is_not_shown_between_the_checklists(): void
+    {
+        $household = Household::factory()->create();
+        TodoList::factory()->for($household)->create(['name' => 'Boodschappen']);
+        $tasksList = TodoList::factory()->for($household)->tasks()->create();
+
+        $this->actingAs($this->memberOf($household));
+
+        Livewire::test(Index::class)
+            ->assertSee('Boodschappen')
+            ->assertDontSee('Huishoudtaken')
+            ->set('search', 'huishoud')
+            ->assertDontSee('Huishoudtaken');
+
+        // nog wel gewoon te openen (via Vandaag → Alle taken)
+        $this->get(route('lists.show', $tasksList))->assertOk();
+    }
+
     public function test_list_of_another_household_returns_404(): void
     {
         $mine = Household::factory()->create();

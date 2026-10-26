@@ -1,7 +1,7 @@
 <div @if ($list->isChecklist()) wire:poll.5s.visible @endif>
     <x-page-header :title="$list->name" :subtitle="$list->isChecklist() ? 'Checklist' : 'Takenlijst'">
         <x-slot:actions>
-            <x-button size="sm" variant="secondary" :href="route('lists.index')" wire:navigate>
+            <x-button size="sm" variant="secondary" :href="$list->isChecklist() ? route('lists.index') : route('dashboard')" wire:navigate>
                 <x-icon name="arrow-left" />
                 Terug
             </x-button>
