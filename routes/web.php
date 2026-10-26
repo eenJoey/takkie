@@ -1,11 +1,14 @@
 <?php
 
+use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\Auth\LogoutController;
+use App\Http\Controllers\AvatarController;
 use App\Livewire\Auth;
 use App\Livewire\Household;
 use App\Livewire\InviteShow;
 use App\Livewire\Lists;
 use App\Livewire\Onboarding;
+use App\Livewire\Profile;
 use App\Livewire\Recipes;
 use App\Livewire\Rewards;
 use App\Livewire\Today;
@@ -16,6 +19,10 @@ Route::middleware('guest')->group(function () {
     Route::get('/login', Auth\Login::class)->name('login');
     Route::get('/forgot-password', Auth\ForgotPassword::class)->name('password.request');
     Route::get('/reset-password/{token}', Auth\ResetPassword::class)->name('password.reset');
+
+    // Google-login via Socialite (M8)
+    Route::get('/auth/google/redirect', [GoogleController::class, 'redirect'])->name('auth.google');
+    Route::get('/auth/google/callback', [GoogleController::class, 'callback'])->name('auth.google.callback');
 });
 
 Route::post('/logout', LogoutController::class)->middleware('auth')->name('logout');
@@ -39,6 +46,8 @@ Route::middleware(['auth', 'household'])->group(function () {
     Route::get('/recipes/create', Recipes\Form::class)->name('recipes.create');
     Route::get('/recipes/{recipe:slug}/edit', Recipes\Form::class)->name('recipes.edit');
     Route::get('/household', Household\Index::class)->name('household');
+    Route::get('/profiel', Profile\Index::class)->name('profile');
+    Route::get('/avatars/{user}', [AvatarController::class, 'show'])->name('avatars.show');
 });
 
 // Recept bekijken: leden altijd, anderen alleen als het openbaar is (M6/M7). Als laatste, vanwege {slug}.

@@ -75,13 +75,12 @@
                         </div>
                         <h2 class="hidden min-w-0 flex-1 truncate text-lg font-bold lg:block">{{ $household?->name ?? 'Welkom' }}</h2>
                         <livewire:shared.points-badge key="points-badge" />
-                        {{-- Op mobiel tijdelijk hier; in M8 verhuist uitloggen naar de profielpagina (zoals vinkie lovable) --}}
-                        <form method="POST" action="{{ route('logout') }}" class="lg:hidden">
-                            @csrf
-                            <x-button type="submit" variant="icon" aria-label="Uitloggen">
-                                <x-icon name="log-out" class="size-5" />
-                            </x-button>
-                        </form>
+                        {{-- Avatar + naam → profiel (vinkie lovable); uitloggen staat op de profielpagina --}}
+                        <a href="{{ route('profile') }}" wire:navigate aria-label="Profiel"
+                            class="flex shrink-0 items-center gap-2 rounded-full py-1 pr-1 pl-1 transition hover:bg-accent/30 sm:pr-3">
+                            <x-avatar :user="auth()->user()" class="size-9 text-sm" />
+                            <span class="hidden max-w-[140px] truncate text-sm font-semibold sm:block">{{ auth()->user()->name }}</span>
+                        </a>
                     </div>
                 </header>
 
