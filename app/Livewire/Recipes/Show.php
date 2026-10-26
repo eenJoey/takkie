@@ -3,6 +3,7 @@
 namespace App\Livewire\Recipes;
 
 use App\Actions\CopyPublicRecipe;
+use App\Actions\SyncRecipeCopy;
 use App\Models\Recipe;
 use App\Models\Scopes\HouseholdScope;
 use App\Support\CurrentHousehold;
@@ -81,6 +82,24 @@ class Show extends Component
         $this->redirectRoute('recipes.show', $copy, navigate: true);
     }
 
+    public function acceptSourceUpdate(SyncRecipeCopy $sync): void
+    {
+        $recipe = $this->recipe();
+        $this->authorize('check', $recipe);
+
+        $sync->accept($recipe);
+        $this->dispatch('toast', type: 'success', message: 'Nieuwe versie overgenomen');
+    }
+
+    public function dismissSourceUpdate(SyncRecipeCopy $sync): void
+    {
+        $recipe = $this->recipe();
+        $this->authorize('check', $recipe);
+
+        $sync->dismiss($recipe);
+        $this->dispatch('toast', type: 'success', message: 'Je houdt je eigen versie');
+    }
+
     public function deleteCopy(): void
     {
         $recipe = $this->recipe();
@@ -109,6 +128,7 @@ class Show extends Component
             'canAdd' => ! $isMember && $recipe->isPublic() && auth()->check() && app(CurrentHousehold::class)->id() !== null,
             'existingCopy' => $isMember ? null : $this->existingCopy(),
             'source' => $recipe->isCopy() ? $recipe->source : null,
+            'hasUpdate' => $isMember && $recipe->hasSourceUpdate(),
         ])->layout($useAppLayout ? 'layouts::app' : 'layouts::public', [
             'title' => $recipe->title,
             'description' => Str::limit(strip_tags((string) $recipe->instructions), 150),

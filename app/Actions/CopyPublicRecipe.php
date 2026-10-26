@@ -38,6 +38,7 @@ class CopyPublicRecipe
                 'instructions' => $source->instructions,
                 'visibility' => RecipeVisibility::Private,
                 'copied_at' => now(),
+                'source_synced_at' => $source->content_changed_at,
             ]);
 
             $source->ingredients()->withoutGlobalScope(HouseholdScope::class)->get()

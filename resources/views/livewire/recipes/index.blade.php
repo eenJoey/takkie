@@ -18,6 +18,9 @@
             <x-card wire:key="recipe-{{ $recipe->id }}" class="flex flex-col gap-3">
                 <div class="flex flex-wrap items-center gap-2">
                     <span class="rounded-full bg-secondary px-2.5 py-1 text-xs font-semibold text-muted-foreground">Recept</span>
+                    @if ($recipe->hasSourceUpdate())
+                        <span class="rounded-full bg-primary px-2.5 py-1 text-xs font-semibold text-primary-foreground">Nieuwe versie</span>
+                    @endif
                     @if ($recipe->isCopy())
                         <span class="rounded-full bg-accent/40 px-2.5 py-1 text-xs font-semibold text-foreground">Kopie</span>
                     @endif

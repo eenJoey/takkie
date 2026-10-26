@@ -82,6 +82,8 @@ class Form extends Component
                 $this->authorize('update', $recipe);
             }
 
+            $before = $recipe->exists ? $this->contentOf($recipe) : null;
+
             $recipe->title = trim($this->title);
             $recipe->instructions = trim($this->instructions) ?: null;
             $recipe->setVisibility($this->isPublic ? RecipeVisibility::Public : RecipeVisibility::Private);
@@ -90,10 +92,26 @@ class Form extends Component
             $this->syncIngredients($recipe);
             $this->syncTags($recipe);
 
+            // wie een kopie heeft, krijgt dan een melding dat er een nieuwe versie is (Recipe::hasSourceUpdate)
+            if ($before !== null && $before !== $this->contentOf($recipe->fresh())) {
+                $recipe->update(['content_changed_at' => now()]);
+            }
+
             return $recipe;
         });
 
         $this->redirectRoute('recipes.show', $recipe, navigate: true);
+    }
+
+    /** Inhoud die een kopie overneemt; afvinken en zichtbaarheid tellen niet mee. */
+    private function contentOf(Recipe $recipe): array
+    {
+        return [
+            $recipe->title,
+            $recipe->instructions,
+            $recipe->ingredients()->pluck('text')->all(),
+            $recipe->tags()->pluck('name')->all(),
+        ];
     }
 
     private function syncIngredients(Recipe $recipe): void
