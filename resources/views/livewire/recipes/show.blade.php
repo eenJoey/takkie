@@ -15,6 +15,38 @@
         </x-slot:actions>
     </x-page-header>
 
+    @if ($isMember && $recipe->isCopy())
+        <div class="mb-4 flex items-start gap-3 rounded-2xl bg-secondary px-4 py-3 text-sm">
+            <x-icon name="lock" class="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+            <p>
+                <span class="font-semibold">Kopie van een openbaar recept</span> — alleen-lezen, afvinken kan wel.
+                @if ($source?->isPublic())
+                    <a href="{{ route('recipes.show', $source->slug) }}" class="font-semibold underline hover:text-primary">Bekijk het origineel</a>
+                @elseif ($source === null)
+                    <span class="text-muted-foreground">Het originele recept is verwijderd; deze kopie blijft bewaard.</span>
+                @else
+                    <span class="text-muted-foreground">Het originele recept is niet meer openbaar; deze kopie blijft bewaard.</span>
+                @endif
+            </p>
+        </div>
+    @endif
+
+    @if ($existingCopy)
+        <div class="mb-4">
+            <x-button size="sm" variant="secondary" :href="route('recipes.show', $existingCopy)">
+                <x-icon name="check" />
+                Staat al in je recepten
+            </x-button>
+        </div>
+    @elseif ($canAdd)
+        <div class="mb-4">
+            <x-button size="sm" wire:click="addToMyRecipes" wire:loading.attr="disabled" wire:target="addToMyRecipes">
+                <x-icon name="plus" />
+                Toevoegen aan mijn recepten
+            </x-button>
+        </div>
+    @endif
+
     @if ($tags->isNotEmpty() || $recipe->isPublic())
         <div class="-mt-2 mb-4 flex flex-wrap gap-2">
             @if ($recipe->isPublic() && $isMember)
@@ -61,10 +93,18 @@
 
     @if ($isMember)
         <div class="mt-4 flex justify-end gap-2">
-            <x-button size="sm" :href="route('recipes.edit', $recipe)" wire:navigate>
-                <x-icon name="pencil" />
-                Bewerken
-            </x-button>
+            @can('update', $recipe)
+                <x-button size="sm" :href="route('recipes.edit', $recipe)" wire:navigate>
+                    <x-icon name="pencil" />
+                    Bewerken
+                </x-button>
+            @endcan
+            @can('delete', $recipe)
+                <x-button size="sm" variant="outline" wire:click="deleteCopy" wire:confirm="Deze kopie uit je recepten verwijderen?">
+                    <x-icon name="trash" />
+                    Verwijderen
+                </x-button>
+            @endcan
             <x-button size="sm" variant="secondary" wire:click="resetItems">Reset lijst</x-button>
         </div>
     @endif

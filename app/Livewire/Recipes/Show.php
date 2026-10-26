@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Recipes;
 
+use App\Actions\CopyPublicRecipe;
 use App\Models\Recipe;
 use App\Models\Scopes\HouseholdScope;
 use App\Support\CurrentHousehold;
@@ -13,7 +14,8 @@ use Livewire\Component;
 
 /**
  * /recipes/{slug}: één pagina voor leden én publiek (MIGRATIE-PLAN.md, sectie e).
- * Leden: afvinken, "Reset lijst", "Bewerken". Anderen: alleen lezen, en alleen als het recept openbaar is (anders 404).
+ * Leden: afvinken, "Reset lijst", "Bewerken" (niet bij een kopie; die kun je wel verwijderen).
+ * Anderen: alleen lezen, en alleen als het recept openbaar is (anders 404). Ingelogd: "Toevoegen aan mijn recepten".
  */
 class Show extends Component
 {
@@ -43,7 +45,7 @@ class Show extends Component
     public function toggleItem(int $ingredientId): void
     {
         $recipe = $this->recipe();
-        $this->authorize('update', $recipe);
+        $this->authorize('check', $recipe);
 
         $ingredient = $recipe->ingredients()->withoutGlobalScope(HouseholdScope::class)->findOrFail($ingredientId);
         $ingredient->update(['is_checked' => ! $ingredient->is_checked]);
@@ -52,9 +54,42 @@ class Show extends Component
     public function resetItems(): void
     {
         $recipe = $this->recipe();
-        $this->authorize('update', $recipe);
+        $this->authorize('check', $recipe);
 
         $recipe->ingredients()->withoutGlobalScope(HouseholdScope::class)->update(['is_checked' => false]);
+    }
+
+    /** Kopie van dit recept in het huidige huishouden, als die er al is. */
+    private function existingCopy(): ?Recipe
+    {
+        $householdId = app(CurrentHousehold::class)->id();
+
+        return $householdId ? Recipe::withoutGlobalScope(HouseholdScope::class)
+            ->where('household_id', $householdId)
+            ->where('source_recipe_id', $this->recipeId)
+            ->first() : null;
+    }
+
+    public function addToMyRecipes(CopyPublicRecipe $copyRecipe): void
+    {
+        $household = app(CurrentHousehold::class)->get();
+        abort_unless($household, 403);
+
+        $copy = $copyRecipe->handle(auth()->user(), $this->recipe(), $household);
+
+        session()->flash('toast', ['type' => 'success', 'message' => 'Toegevoegd aan je recepten']);
+        $this->redirectRoute('recipes.show', $copy, navigate: true);
+    }
+
+    public function deleteCopy(): void
+    {
+        $recipe = $this->recipe();
+        $this->authorize('delete', $recipe);
+
+        $recipe->delete();
+
+        session()->flash('toast', ['type' => 'success', 'message' => 'Verwijderd uit je recepten']);
+        $this->redirectRoute('recipes.index', navigate: true);
     }
 
     public function render(): View
@@ -70,6 +105,10 @@ class Show extends Component
             'ingredients' => $recipe->ingredients()->withoutGlobalScope(HouseholdScope::class)->get(),
             'tags' => $recipe->tags()->withoutGlobalScope(HouseholdScope::class)->get(),
             'isMember' => $isMember,
+            // toevoegen kan alleen ingelogd, met een huishouden, aan een openbaar recept van een ander huishouden
+            'canAdd' => ! $isMember && $recipe->isPublic() && auth()->check() && app(CurrentHousehold::class)->id() !== null,
+            'existingCopy' => $isMember ? null : $this->existingCopy(),
+            'source' => $recipe->isCopy() ? $recipe->source : null,
         ])->layout($useAppLayout ? 'layouts::app' : 'layouts::public', [
             'title' => $recipe->title,
             'description' => Str::limit(strip_tags((string) $recipe->instructions), 150),
