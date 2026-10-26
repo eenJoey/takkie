@@ -20,7 +20,7 @@ class SplashTest extends TestCase
         $user = User::factory()->create();
         app(CreateHousehold::class)->handle($user, 'Thuis');
 
-        $this->actingAs($user)->get('/')
+        $this->actingAs($user)->get(route('lists.index'))
             ->assertSee('id="takkie-splash"', false)
             ->assertSee('takkie-splash-in 0.2s ease-out 0.3s', false)
             ->assertSee('takkie-splash-out 0.3s ease-in 10s', false);
