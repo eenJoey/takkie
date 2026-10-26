@@ -25,6 +25,9 @@ return Application::configure(basePath: dirname(__DIR__))
         );
 
         $middleware->redirectUsersTo('/');
+
+        // achter de reverse proxy van Coolify (Traefik) draait HTTPS: X-Forwarded-* vertrouwen, anders worden links http://
+        $middleware->trustProxies(at: '*');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
