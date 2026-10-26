@@ -73,7 +73,7 @@ class NotificationsTest extends TestCase
         $this->assertSame('Takkie', $manifest['short_name']);
         $this->assertSame('standalone', $manifest['display']);
 
-        $this->get('/')->assertSee('rel="manifest"', false)->assertSee('apple-mobile-web-app-capable', false);
+        $this->get(route('lists.index'))->assertSee('rel="manifest"', false)->assertSee('apple-mobile-web-app-capable', false);
     }
 
     public function test_profile_shows_notification_card(): void

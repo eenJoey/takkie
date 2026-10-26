@@ -38,7 +38,9 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware(['auth', 'household'])->group(function () {
-    Route::get('/', Lists\Index::class)->name('lists.index');
+    // Start: naar het gekozen starttabblad (profiel). Inloggen, onboarding en de PWA komen hier binnen.
+    Route::get('/', fn () => redirect()->route(auth()->user()->startPage()->route()))->name('home');
+    Route::get('/lijstjes', Lists\Index::class)->name('lists.index');
     Route::get('/lists/{list}', Lists\Show::class)->name('lists.show');
     Route::get('/dashboard', Today::class)->name('dashboard');
     Route::get('/taken', Lists\Show::class)->name('tasks');

@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Profile;
 
+use App\Enums\StartPage;
 use App\Support\CurrentHousehold;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
@@ -13,7 +14,10 @@ use Livewire\Attributes\Validate;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
-/** /profiel (vinkie lovable): profielfoto, weergavenaam, standaard huishouden en uitloggen, plus meldingen (M9). */
+/**
+ * /profiel (vinkie lovable): profielfoto, weergavenaam, starttabblad, huishoudens wisselen en uitloggen, plus meldingen (M9).
+ * Van de andere huishoudens tonen we alleen de naam: de inhoud pas na het wisselen.
+ */
 #[Title('Profiel')]
 class Index extends Component
 {
@@ -91,7 +95,17 @@ class Index extends Component
         $this->dispatch('toast', type: 'success', message: 'Profielfoto bijgewerkt');
     }
 
-    public function setDefaultHousehold(int $householdId): void
+    public function setStartPage(string $page): void
+    {
+        $startPage = StartPage::tryFrom($page);
+        abort_unless($startPage, 422);
+
+        auth()->user()->update(['start_page' => $startPage]);
+        $this->dispatch('toast', type: 'success', message: 'Takkie start voortaan op '.$startPage->label());
+    }
+
+    /** Wisselen = ook het standaard huishouden: de keuze wordt op de gebruiker onthouden. */
+    public function switchHousehold(int $householdId): void
     {
         $household = $this->households->firstWhere('id', $householdId);
         abort_unless($household, 404);
@@ -99,7 +113,7 @@ class Index extends Component
         auth()->user()->forceFill(['current_household_id' => $household->id])->save();
         app(CurrentHousehold::class)->forget();
 
-        session()->flash('toast', ['type' => 'success', 'message' => 'Standaard huishouden ingesteld']);
+        session()->flash('toast', ['type' => 'success', 'message' => 'Gewisseld naar '.$household->name]);
         $this->redirectRoute('profile');
     }
 

@@ -252,7 +252,7 @@ class HouseholdsTest extends TestCase
         TodoList::factory()->for($second)->create(['name' => 'Lijst van tweede']);
 
         $owner->forceFill(['current_household_id' => $first->id])->save();
-        $this->actingAs($owner)->get('/')->assertSee('Lijst van eerste')->assertDontSee('Lijst van tweede');
+        $this->actingAs($owner)->get(route('lists.index'))->assertSee('Lijst van eerste')->assertDontSee('Lijst van tweede');
     }
 
     public function test_household_role_is_stored_on_membership(): void

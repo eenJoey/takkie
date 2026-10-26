@@ -47,7 +47,7 @@ class ListsTest extends TestCase
         TodoList::factory()->for($other)->create(['name' => 'Andermans lijst']);
 
         $this->actingAs($this->memberOf($mine))
-            ->get('/')
+            ->get(route('lists.index'))
             ->assertOk()
             ->assertSee('Mijn boodschappen')
             ->assertDontSee('Andermans lijst');
@@ -226,7 +226,7 @@ class ListsTest extends TestCase
         $user = $this->memberOf($household);
         $this->assertNull($user->current_household_id);
 
-        $this->actingAs($user)->get('/')->assertOk();
+        $this->actingAs($user)->get(route('lists.index'))->assertOk();
 
         $this->assertSame($household->id, $user->fresh()->current_household_id);
     }

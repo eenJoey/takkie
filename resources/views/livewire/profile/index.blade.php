@@ -37,14 +37,44 @@
 
     <section class="space-y-3 rounded-3xl bg-card p-6 shadow-card">
         <div>
-            <h2 class="font-bold">Standaard huishouden</h2>
-            <p class="text-sm text-muted-foreground">Dit huishouden wordt geopend als je Takkie start.</p>
+            <h2 class="font-bold">Starttabblad</h2>
+            <p class="text-sm text-muted-foreground">Dit tabblad wordt geopend als je Takkie start.</p>
         </div>
-        <x-select aria-label="Standaard huishouden" x-data x-on:change="$wire.setDefaultHousehold(Number($event.target.value))">
-            @foreach ($this->households as $household)
-                <option value="{{ $household->id }}" @selected($current?->id === $household->id)>{{ $household->name }}</option>
+        <x-select aria-label="Starttabblad" x-data x-on:change="$wire.setStartPage($event.target.value)">
+            @foreach (\App\Enums\StartPage::cases() as $page)
+                <option value="{{ $page->value }}" @selected($user->startPage() === $page)>{{ $page->label() }}</option>
             @endforeach
         </x-select>
+    </section>
+
+    <section class="space-y-3 rounded-3xl bg-card p-6 shadow-card">
+        <div>
+            <h2 class="font-bold">Huishoudens</h2>
+            <p class="text-sm text-muted-foreground">Je huidige huishouden wordt ook geopend als je Takkie start.</p>
+        </div>
+        <ul class="space-y-2">
+            @foreach ($this->households as $household)
+                @php $isCurrent = $current?->id === $household->id; @endphp
+                <li wire:key="hh-{{ $household->id }}" @class([
+                    'flex items-center gap-3 rounded-2xl border px-4 py-3',
+                    'border-primary bg-primary/10' => $isCurrent,
+                    'border-border' => ! $isCurrent,
+                ])>
+                    <x-icon :name="$isCurrent ? 'check' : 'users'" @class(['size-5 shrink-0', 'text-primary' => $isCurrent, 'text-muted-foreground' => ! $isCurrent]) />
+                    <span class="min-w-0 flex-1 truncate font-semibold">{{ $household->name }}</span>
+                    @if ($isCurrent)
+                        <x-button size="sm" variant="secondary" class="rounded-full" :href="route('household')" wire:navigate>Bekijken</x-button>
+                    @else
+                        <x-button size="sm" variant="outline" class="rounded-full" wire:click="switchHousehold({{ $household->id }})"
+                            wire:loading.attr="disabled" wire:target="switchHousehold">Wisselen</x-button>
+                    @endif
+                </li>
+            @endforeach
+        </ul>
+        <a href="{{ route('household') }}" wire:navigate class="inline-flex items-center gap-1 text-sm font-semibold text-primary-foreground hover:underline">
+            <x-icon name="plus" class="size-4" />
+            Nieuw huishouden of uitnodiging
+        </a>
     </section>
 
     <livewire:profile.notification-settings />

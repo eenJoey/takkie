@@ -72,7 +72,7 @@ class TasksTest extends TestCase
         $this->task(['title' => 'Planten water', 'recurrence_type' => RecurrenceType::Daily, 'recurrence_interval' => 2]);
 
         // vinkie-menu-item "Taken" → /taken; het oude lijst-adres stuurt daarheen door
-        $this->get('/')->assertSee(route('tasks'))->assertSee('Taken');
+        $this->get(route('lists.index'))->assertSee(route('tasks'))->assertSee('Taken');
         $this->get(route('tasks'))->assertOk()->assertSeeLivewire(Board::class)->assertSee('Stofzuigen');
         $this->get(route('lists.show', $this->tasksList))->assertRedirect(route('tasks'));
 
@@ -271,7 +271,7 @@ class TasksTest extends TestCase
         app(CompleteTask::class)->handle($this->user, $this->task(['points' => 12]));
 
         Livewire::test(PointsBadge::class)->assertSee('12');
-        $this->get('/')->assertSeeLivewire(PointsBadge::class);
+        $this->get(route('lists.index'))->assertSeeLivewire(PointsBadge::class);
     }
 
     public function test_the_fixed_tasks_list_page_still_cannot_be_deleted(): void
