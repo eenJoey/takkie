@@ -2,11 +2,12 @@
 
 {{-- Layout voor openbare pagina's (openbare recepten, ontdekken) voor bezoekers zonder huishouden --}}
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+@php $theme = auth()->user()?->theme() ?? \App\Enums\Theme::TakkieLight; @endphp
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-theme="{{ $theme->value }}">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-        <meta name="theme-color" content="#f0bcd0">
+        <meta name="theme-color" content="{{ $theme->metaColor() }}">
         <title>{{ $title ? $title.' — ' : '' }}{{ config('app.name', 'Takkie') }}</title>
         @if ($description)
             <meta name="description" content="{{ $description }}">

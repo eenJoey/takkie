@@ -10,7 +10,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background: #faf6f3;
+        background: var(--background, #faf6f3);
         opacity: 0;
         pointer-events: none;
         /* na 0,3 s tonen; vangnet: na 10 s altijd weg, ook als JavaScript niet laadt */

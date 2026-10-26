@@ -8,11 +8,12 @@
 @endphp
 
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+@php $theme = auth()->user()->theme(); @endphp
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-theme="{{ $theme->value }}">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-        <meta name="theme-color" content="#f0bcd0">
+        <meta name="theme-color" content="{{ $theme->metaColor() }}">
         <title>{{ $title ? $title.' — ' : '' }}{{ config('app.name', 'Takkie') }}</title>
         <link rel="icon" href="{{ asset('icon-192.png') }}">
         {{-- PWA (M9): installeerbaar, zodat meldingen ook op iOS werken --}}
@@ -98,7 +99,7 @@
                             @php $active = request()->routeIs($item->activePattern()); @endphp
                             <a href="{{ route($item->route()) }}" wire:navigate @class([
                                 'flex flex-col items-center justify-center gap-0.5 py-2.5 text-[11px] font-semibold',
-                                'text-primary-foreground' => $active,
+                                'text-link' => $active,
                                 'text-muted-foreground' => ! $active,
                             ])>
                                 <x-icon :name="$item->icon()" @class(['size-5', 'text-primary' => $active]) />
