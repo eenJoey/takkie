@@ -15,7 +15,7 @@
     @if (! $list->isChecklist())
         <livewire:tasks.board :list="$list" :key="'board-'.$list->id" />
     @else
-        <div class="grid items-start gap-4 md:grid-cols-2">
+        <div class="grid items-start gap-4 md:grid-cols-2 xl:grid-cols-3">
             @foreach ($categories as $category)
                 @php $open = $category->tasks->whereNull('completed_at')->count(); @endphp
                 <x-card wire:key="category-{{ $category->id }}">

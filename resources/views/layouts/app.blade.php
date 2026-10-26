@@ -87,7 +87,7 @@
                     </div>
                 </header>
 
-                <main class="mx-auto w-full max-w-5xl flex-1 px-4 py-6 pb-28 lg:px-8 lg:pb-10">
+                <main class="mx-auto w-full max-w-7xl flex-1 px-4 py-6 pb-28 lg:px-8 lg:pb-10 xl:px-10">
                     {{ $slot }}
                 </main>
 

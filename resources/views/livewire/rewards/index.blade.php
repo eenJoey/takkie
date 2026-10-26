@@ -11,7 +11,7 @@
     @if ($this->rewards->isEmpty())
         <x-empty-state emoji="🎁" title="Nog geen beloningen" description="Maak je eerste beloning: bv. '1 uur gamen — 50 punten'." />
     @else
-        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
             @foreach ($this->rewards as $reward)
                 @php $canAfford = $this->balance >= $reward->cost_points; @endphp
                 <div wire:key="reward-{{ $reward->id }}" class="flex flex-col rounded-2xl bg-card p-5 shadow-card">
