@@ -49,6 +49,45 @@
 
     <section class="space-y-3 rounded-3xl bg-card p-6 shadow-card">
         <div>
+            <h2 class="font-bold">Kleuren</h2>
+            <p class="text-sm text-muted-foreground">Alleen voor jou; anderen in je huishouden houden hun eigen kleuren.</p>
+        </div>
+        {{-- zoals Slack: kaartjes zonder namen, met een rondje (vinkje = gekozen) en een kleurbalkje --}}
+        <div role="radiogroup" aria-label="Kleuren" class="grid gap-2 sm:grid-cols-2">
+            @foreach (\App\Enums\Theme::cases() as $theme)
+                @php $selected = $user->theme() === $theme; @endphp
+                <button type="button" role="radio" aria-checked="{{ $selected ? 'true' : 'false' }}" aria-label="Kleuren {{ $loop->iteration }}"
+                    wire:key="theme-{{ $theme->value }}" wire:click="setTheme('{{ $theme->value }}')"
+                    @class([
+                        'flex items-center gap-3 rounded-2xl border-2 p-3 text-left transition',
+                        'border-primary' => $selected,
+                        'border-border hover:border-border-strong' => ! $selected,
+                    ])>
+                    <span @class([
+                        'flex size-6 shrink-0 items-center justify-center rounded-full border-2',
+                        'border-primary bg-primary text-primary-foreground' => $selected,
+                        'border-border-strong' => ! $selected,
+                    ])>
+                        @if ($selected)
+                            <x-icon name="check" class="size-3.5" />
+                        @endif
+                    </span>
+                    {{-- de kleuren van die stelling zelf: data-theme zet de tokens alleen binnen dit balkje --}}
+                    <span data-theme="{{ $theme->value }}" class="flex h-8 flex-1 overflow-hidden rounded-full border border-border-strong">
+                        <span class="flex-1 bg-background"></span>
+                        <span class="flex-1 bg-sidebar"></span>
+                        <span class="flex-1 bg-secondary"></span>
+                        <span class="flex-1 bg-accent"></span>
+                        <span class="flex-1 bg-primary"></span>
+                        <span class="flex-1 bg-foreground"></span>
+                    </span>
+                </button>
+            @endforeach
+        </div>
+    </section>
+
+    <section class="space-y-3 rounded-3xl bg-card p-6 shadow-card">
+        <div>
             <h2 class="font-bold">Huishoudens</h2>
             <p class="text-sm text-muted-foreground">Je huidige huishouden wordt ook geopend als je Takkie start.</p>
         </div>
@@ -71,7 +110,7 @@
                 </li>
             @endforeach
         </ul>
-        <a href="{{ route('household') }}" wire:navigate class="inline-flex items-center gap-1 text-sm font-semibold text-primary-foreground hover:underline">
+        <a href="{{ route('household') }}" wire:navigate class="inline-flex items-center gap-1 text-sm font-semibold text-link hover:underline">
             <x-icon name="plus" class="size-4" />
             Nieuw huishouden of uitnodiging
         </a>

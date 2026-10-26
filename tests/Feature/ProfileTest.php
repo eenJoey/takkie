@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Actions\CreateHousehold;
 use App\Enums\StartPage;
+use App\Enums\Theme;
 use App\Livewire\Profile\Index;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -168,5 +169,30 @@ class ProfileTest extends TestCase
         $this->assertSame(['Lijstjes', 'Vandaag', 'Beloningen', 'Recepten'], $bottomNav);
         // in de zijbalk (desktop) staan ze wel
         $this->get(route('lists.index'))->assertSee(route('tasks'))->assertSee(route('household'));
+    }
+
+    public function test_own_colors_can_be_chosen_without_names(): void
+    {
+        $this->get(route('lists.index'))->assertSee('data-theme="takkie-light"', false);
+        $this->get('/profiel')
+            ->assertSee('role="radiogroup"', false)
+            ->assertSee('data-theme="monokai-dark"', false)
+            ->assertDontSee('Monokai')
+            ->assertDontSee('Oceaan');
+
+        Livewire::test(Index::class)->call('setTheme', 'ocean-dark');
+        $this->assertSame(Theme::OceanDark, $this->user->fresh()->theme);
+        $this->get(route('lists.index'))
+            ->assertSee('data-theme="ocean-dark"', false)
+            ->assertSee('content="#0b1e2d"', false);
+
+        // alleen voor jezelf: een huisgenoot houdt de standaard
+        $other = User::factory()->create();
+        $this->user->households()->first()->addMember($other, \App\Enums\HouseholdRole::Member);
+        $this->actingAs($other)->get(route('lists.index'))->assertSee('data-theme="takkie-light"', false);
+
+        $this->actingAs($this->user);
+        Livewire::test(Index::class)->call('setTheme', 'bestaat-niet')->assertStatus(422);
+        $this->assertSame(Theme::OceanDark, $this->user->fresh()->theme);
     }
 }

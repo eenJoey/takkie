@@ -39,7 +39,7 @@
             <div class="text-center">
                 <h2 class="text-lg font-bold first-letter:uppercase">{{ $this->label() }}</h2>
                 @if ($offset !== 0)
-                    <button type="button" wire:click="backToToday" class="text-xs font-semibold text-primary-foreground hover:underline">Terug naar vandaag</button>
+                    <button type="button" wire:click="backToToday" class="text-xs font-semibold text-link hover:underline">Terug naar vandaag</button>
                 @endif
             </div>
             <button type="button" wire:click="nextDay" aria-label="Volgende dag"

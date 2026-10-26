@@ -3,6 +3,7 @@
 namespace App\Livewire\Profile;
 
 use App\Enums\StartPage;
+use App\Enums\Theme;
 use App\Support\CurrentHousehold;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
@@ -15,7 +16,7 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 
 /**
- * /profiel (vinkie lovable): profielfoto, weergavenaam, starttabblad, huishoudens wisselen en uitloggen, plus meldingen (M9).
+ * /profiel (vinkie lovable): profielfoto, weergavenaam, starttabblad, kleurstelling, huishoudens wisselen en uitloggen, plus meldingen (M9).
  * Van de andere huishoudens tonen we alleen de naam: de inhoud pas na het wisselen.
  */
 #[Title('Profiel')]
@@ -102,6 +103,18 @@ class Index extends Component
 
         auth()->user()->update(['start_page' => $startPage]);
         $this->dispatch('toast', type: 'success', message: 'Takkie start voortaan op '.$startPage->label());
+    }
+
+    /** Alleen voor jezelf: de kleuren wisselen direct, zonder herladen. */
+    public function setTheme(string $value): void
+    {
+        $theme = Theme::tryFrom($value);
+        abort_unless($theme, 422);
+
+        auth()->user()->update(['theme' => $theme]);
+
+        $this->js('document.documentElement.dataset.theme = '.json_encode($theme->value).';'
+            .'document.querySelector(\'meta[name="theme-color"]\')?.setAttribute("content", '.json_encode($theme->metaColor()).');');
     }
 
     /** Wisselen = ook het standaard huishouden: de keuze wordt op de gebruiker onthouden. */

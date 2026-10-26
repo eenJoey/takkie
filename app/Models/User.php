@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\HouseholdRole;
 use App\Enums\StartPage;
+use App\Enums\Theme;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -16,7 +17,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use NotificationChannels\WebPush\HasPushSubscriptions;
 
-#[Fillable(['name', 'email', 'password', 'current_household_id', 'start_page', 'google_id', 'avatar'])]
+#[Fillable(['name', 'email', 'password', 'current_household_id', 'start_page', 'theme', 'google_id', 'avatar'])]
 #[Hidden(['password', 'remember_token', 'google_id'])]
 class User extends Authenticatable
 {
@@ -34,6 +35,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'start_page' => StartPage::class,
+            'theme' => Theme::class,
         ];
     }
 
@@ -59,6 +61,12 @@ class User extends Authenticatable
     public function startPage(): StartPage
     {
         return $this->start_page ?? StartPage::Lists;
+    }
+
+    /** De gekozen kleurstelling (profiel). */
+    public function theme(): Theme
+    {
+        return $this->theme ?? Theme::TakkieLight;
     }
 
     public function isMemberOf(Household|int|null $household): bool

@@ -2,11 +2,12 @@
 
 {{-- Layout voor de inlogschermen: kaart op een gradient, zoals vinkie's /login, /forgot-password en /reset-password --}}
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+@php $theme = \App\Enums\Theme::TakkieLight; @endphp
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-theme="{{ $theme->value }}">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-        <meta name="theme-color" content="#f0bcd0">
+        <meta name="theme-color" content="{{ $theme->metaColor() }}">
         <title>{{ $title ? $title.' — ' : '' }}{{ config('app.name', 'Takkie') }}</title>
         <link rel="icon" href="{{ asset('icon-192.png') }}">
         {{-- PWA (M9): installeerbaar, zodat meldingen ook op iOS werken --}}
