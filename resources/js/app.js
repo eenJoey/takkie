@@ -1,5 +1,6 @@
 import confetti from 'canvas-confetti';
 import { registerPushWorker, takkieNotifications } from './push';
+import './splash';
 
 // Confetti bij het afvinken van een taak, met dezelfde instellingen als vinkie
 window.addEventListener('task-completed', () => {

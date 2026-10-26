@@ -25,6 +25,7 @@
         @livewireStyles
     </head>
     <body class="min-h-screen">
+        <x-splash />
         <x-toaster />
 
         <div class="min-h-screen bg-screen">

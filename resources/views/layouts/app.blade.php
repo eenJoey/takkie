@@ -34,6 +34,7 @@
         @livewireStyles
     </head>
     <body class="min-h-screen">
+        <x-splash />
         <x-toaster />
 
         <div class="flex min-h-screen bg-screen">

@@ -22,6 +22,7 @@
         @livewireStyles
     </head>
     <body class="min-h-screen">
+        <x-splash />
         <x-toaster />
 
         <div class="flex min-h-screen items-center justify-center bg-linear-to-br from-background via-secondary/40 to-accent/30 px-4 py-12">
