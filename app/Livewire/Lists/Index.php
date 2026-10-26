@@ -50,12 +50,13 @@ class Index extends Component
     {
         $search = trim($this->search);
 
+        // Alleen checklists; "Huishoudtaken" staat hier bewust niet tussen (bereikbaar via Vandaag → Alle taken)
         $lists = TodoList::query()
+            ->where('type', ListType::Checklist)
             ->when($search !== '', fn ($query) => $query->where('name', 'like', '%'.$search.'%'))
             ->withCount('categories')
-            // de vaste takenlijst bovenaan, daarna nieuwste eerst (zoals takkie)
-            ->orderByRaw('type = ? desc', [ListType::Tasks->value])
             ->latest()
+            ->latest('id')
             ->get();
 
         return view('livewire.lists.index', [

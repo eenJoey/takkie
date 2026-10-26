@@ -29,15 +29,9 @@
                 <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
                     <h3 class="min-w-0 flex-1 basis-40 break-words text-lg font-bold">{{ $list->name }}</h3>
                     <div class="flex shrink-0 items-center gap-2">
-                        @if ($list->isChecklist())
-                            <x-badge>{{ $list->categories_count }} {{ $list->categories_count === 1 ? 'categorie' : 'categorieën' }}</x-badge>
-                        @else
-                            <x-badge>Taken</x-badge>
-                        @endif
+                        <x-badge>{{ $list->categories_count }} {{ $list->categories_count === 1 ? 'categorie' : 'categorieën' }}</x-badge>
                         <x-button size="sm" :href="route('lists.show', $list)" wire:navigate>Open</x-button>
-                        @can('delete', $list)
-                            <x-button size="sm" variant="secondary" wire:click="delete({{ $list->id }})">Verwijder</x-button>
-                        @endcan
+                        <x-button size="sm" variant="secondary" wire:click="delete({{ $list->id }})">Verwijder</x-button>
                     </div>
                 </div>
             </x-card>
