@@ -13,7 +13,7 @@ use Livewire\Attributes\Validate;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
-/** /profiel (vinkie lovable): profielfoto, weergavenaam, standaard huishouden en uitloggen. Meldingen volgen in M9. */
+/** /profiel (vinkie lovable): profielfoto, weergavenaam, standaard huishouden en uitloggen, plus meldingen (M9). */
 #[Title('Profiel')]
 class Index extends Component
 {

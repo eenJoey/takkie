@@ -11,7 +11,14 @@
         @if ($description)
             <meta name="description" content="{{ $description }}">
         @endif
-        <link rel="icon" href="{{ asset('images/takkie-logo.png') }}">
+        <link rel="icon" href="{{ asset('icon-192.png') }}">
+        {{-- PWA (M9): installeerbaar, zodat meldingen ook op iOS werken --}}
+        <link rel="manifest" href="/manifest.json">
+        <link rel="apple-touch-icon" href="{{ asset('icon-192.png') }}">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="default">
+        <meta name="apple-mobile-web-app-title" content="Takkie">
 
         @fonts
         @vite(['resources/css/app.css', 'resources/js/app.js'])

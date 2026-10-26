@@ -47,7 +47,7 @@
         </x-select>
     </section>
 
-    {{-- Meldingsinstellingen (vinkie NotificationSettings) volgen in M9 --}}
+    <livewire:profile.notification-settings />
 
     <form method="POST" action="{{ route('logout') }}">
         @csrf
