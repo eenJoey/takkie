@@ -5,6 +5,7 @@
     $navItems = [
         ['route' => 'lists.index', 'active' => 'lists.*', 'label' => 'Lijstjes', 'icon' => 'list-checks'],
         ['route' => 'dashboard', 'active' => 'dashboard', 'label' => 'Vandaag', 'icon' => 'home'],
+        ['route' => 'rewards', 'active' => 'rewards', 'label' => 'Beloningen', 'icon' => 'gift'],
         ['route' => 'household', 'active' => 'household', 'label' => 'Huishouden', 'icon' => 'users'],
     ];
     $household = app(\App\Support\CurrentHousehold::class)->get();

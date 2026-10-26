@@ -6,6 +6,7 @@ use App\Livewire\Household;
 use App\Livewire\InviteShow;
 use App\Livewire\Lists;
 use App\Livewire\Onboarding;
+use App\Livewire\Rewards;
 use App\Livewire\Today;
 use Illuminate\Support\Facades\Route;
 
@@ -29,5 +30,6 @@ Route::middleware(['auth', 'household'])->group(function () {
     Route::get('/', Lists\Index::class)->name('lists.index');
     Route::get('/lists/{list}', Lists\Show::class)->name('lists.show');
     Route::get('/dashboard', Today::class)->name('dashboard');
+    Route::get('/rewards', Rewards\Index::class)->name('rewards');
     Route::get('/household', Household\Index::class)->name('household');
 });
