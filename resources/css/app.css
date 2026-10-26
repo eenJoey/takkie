@@ -3,7 +3,143 @@
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
-@theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+/*
+ * Takkie — één set design-tokens (zie MIGRATIE-PLAN.md, sectie h).
+ * Basis: de semantische tokens van vinkie (src/styles.css, "soft rose & cream, inspired by Takkie"),
+ * aangevuld met de takkie-specifieke tokens (checklist-regels, categoriekleuren).
+ * Alleen licht thema, zoals beide bronapps in de praktijk.
+ */
+
+@theme inline {
+    --radius-sm: calc(var(--radius) - 4px);
+    --radius-md: calc(var(--radius) - 2px);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) + 4px);
+    --radius-2xl: calc(var(--radius) + 8px);
+    --radius-3xl: calc(var(--radius) + 12px);
+
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-accent: var(--accent);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-destructive: var(--destructive);
+    --color-destructive-foreground: var(--destructive-foreground);
+    --color-destructive-soft: var(--destructive-soft);
+    --color-success: var(--success);
+    --color-success-foreground: var(--success-foreground);
+    --color-warning: var(--warning);
+    --color-warning-foreground: var(--warning-foreground);
+    --color-border: var(--border);
+    --color-border-strong: var(--border-strong);
+    --color-input: var(--input);
+    --color-ring: var(--ring);
+    --color-item: var(--item);
+    --color-item-border: var(--item-border);
+    --color-sidebar: var(--sidebar);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-border: var(--sidebar-border);
+
+    /* takkie categoriekleuren */
+    --color-cat-pink: #f3b6c9;
+    --color-cat-mint: #bfe7d1;
+    --color-cat-sky: #bcd7f8;
+    --color-cat-lavender: #cbb8f5;
+    --color-cat-peach: #f5c7a9;
+    --color-cat-sun: #f5e6a7;
+
+    --font-sans: 'Nunito', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+
+    --shadow-soft: 0 2px 8px -2px oklch(0.7 0.05 350 / 0.1), 0 8px 24px -8px oklch(0.7 0.05 350 / 0.08);
+    --shadow-card: 0 1px 3px oklch(0.7 0.04 350 / 0.06), 0 6px 16px -6px oklch(0.7 0.04 350 / 0.06);
+}
+
+:root {
+    color-scheme: light;
+    --radius: 1.25rem;
+
+    --background: oklch(0.975 0.008 60);
+    --foreground: oklch(0.32 0.04 295);
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.32 0.04 295);
+
+    --primary: oklch(0.78 0.11 350);
+    --primary-foreground: oklch(0.32 0.05 320);
+    --secondary: oklch(0.95 0.025 350);
+    --secondary-foreground: oklch(0.35 0.05 320);
+    --muted: oklch(0.965 0.012 60);
+    --muted-foreground: oklch(0.55 0.025 320);
+    --accent: oklch(0.88 0.08 350);
+    --accent-foreground: oklch(0.32 0.05 320);
+
+    --destructive: oklch(0.62 0.22 25);
+    --destructive-foreground: oklch(0.99 0 0);
+    --destructive-soft: #fde8ee;
+    --success: oklch(0.72 0.13 155);
+    --success-foreground: oklch(0.99 0 0);
+    --warning: oklch(0.82 0.13 80);
+    --warning-foreground: oklch(0.3 0.05 320);
+
+    --border: oklch(0.92 0.015 350);
+    --border-strong: #e0d3d6;
+    --input: oklch(0.92 0.015 350);
+    --ring: oklch(0.78 0.11 350);
+
+    --item: #fbf8f9;
+    --item-border: #f2e7ea;
+
+    --sidebar: oklch(0.985 0.01 60);
+    --sidebar-foreground: oklch(0.34 0.04 295);
+    --sidebar-primary: oklch(0.78 0.11 350);
+    --sidebar-primary-foreground: oklch(0.32 0.05 320);
+    --sidebar-accent: oklch(0.95 0.025 350);
+    --sidebar-border: oklch(0.92 0.015 350);
+}
+
+@layer base {
+    * {
+        border-color: var(--color-border);
+    }
+
+    html,
+    body {
+        font-family: var(--font-sans);
+    }
+
+    body {
+        background-color: var(--color-background);
+        color: var(--color-foreground);
+        -webkit-font-smoothing: antialiased;
+    }
+
+    button:not(:disabled),
+    [role='button']:not(:disabled) {
+        cursor: pointer;
+    }
+}
+
+@layer utilities {
+    .shadow-soft {
+        box-shadow: var(--shadow-soft);
+    }
+
+    .shadow-card {
+        box-shadow: var(--shadow-card);
+    }
+
+    /* takkie-schermachtergrond (135°, crème → zacht blauw) */
+    .bg-screen {
+        background-image: linear-gradient(135deg, var(--background) 0%, #f3f6ff 100%);
+    }
 }
