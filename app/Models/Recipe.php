@@ -74,6 +74,11 @@ class Recipe extends Model
             && ($this->source_synced_at === null || $changedAt->gt($this->source_synced_at));
     }
 
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
     /** Het origineel; buiten de huishoud-scope, want het hoort bij een ander huishouden. */
     public function source(): BelongsTo
     {

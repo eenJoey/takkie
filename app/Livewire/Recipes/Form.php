@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Recipes;
 
+use App\Actions\NotifyRecipeCopies;
 use App\Enums\RecipeVisibility;
 use App\Models\Recipe;
 use Illuminate\Support\Facades\DB;
@@ -9,6 +10,8 @@ use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
+
+use function Illuminate\Support\defer;
 
 /**
  * Recept aanmaken en bewerken (port van takkie RecipeForm), aangevuld met tags en "Openbaar recept" (M7).
@@ -75,7 +78,9 @@ class Form extends Component
             'tags' => ['nullable', 'string', 'max:500'],
         ], [], ['title' => 'naam', 'instructions' => 'instructies']);
 
-        $recipe = DB::transaction(function () {
+        $changed = false;
+
+        $recipe = DB::transaction(function () use (&$changed) {
             $recipe = $this->recipeId ? Recipe::findOrFail($this->recipeId) : new Recipe(['created_by' => auth()->id()]);
 
             if ($recipe->exists) {
@@ -95,10 +100,17 @@ class Form extends Component
             // wie een kopie heeft, krijgt dan een melding dat er een nieuwe versie is (Recipe::hasSourceUpdate)
             if ($before !== null && $before !== $this->contentOf($recipe->fresh())) {
                 $recipe->update(['content_changed_at' => now()]);
+                $changed = true;
             }
 
             return $recipe;
         });
+
+        if ($changed) {
+            // pushmeldingen pas na het antwoord versturen, zodat opslaan niet wacht op de pushdiensten
+            $editorId = auth()->id();
+            defer(fn () => app(NotifyRecipeCopies::class)->handle($recipe->fresh(), $editorId));
+        }
 
         $this->redirectRoute('recipes.show', $recipe, navigate: true);
     }

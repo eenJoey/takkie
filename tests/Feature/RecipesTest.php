@@ -359,4 +359,31 @@ class RecipesTest extends TestCase
         Recipe::withoutGlobalScopes()->whereKey($source->id)->update(['visibility' => RecipeVisibility::Private]);
         $this->assertFalse($copy->fresh()->hasSourceUpdate());
     }
+
+    public function test_whoever_saved_a_copy_gets_a_push_when_the_original_changes(): void
+    {
+        \Illuminate\Support\Facades\Notification::fake();
+        $this->withoutDefer();
+
+        $neighbours = $this->otherHousehold();
+        $owner = $neighbours->users()->first();
+        $source = $this->recipeIn($neighbours, ['title' => 'Lasagne', 'visibility' => RecipeVisibility::Public], ['Pasta']);
+        $copy = app(\App\Actions\CopyPublicRecipe::class)->handle($this->user, $source, $this->household);
+        $this->user->updatePushSubscription('https://push.example.test/abc', 'key', 'token', 'aes128gcm');
+
+        // zonder meldingen aan, of zonder echte wijziging: niets
+        $this->user->notificationSettings()->create(['enabled' => false]);
+        $this->actingAs($owner);
+        Livewire::test(Form::class, ['recipe' => $source])->set('title', 'Lasagne 2')->call('save');
+        Livewire::test(Form::class, ['recipe' => $source])->call('save');
+        \Illuminate\Support\Facades\Notification::assertNothingSent();
+
+        $this->user->notificationSettings()->update(['enabled' => true]);
+        Livewire::test(Form::class, ['recipe' => $source])->set('title', 'Lasagne 3')->call('save');
+
+        \Illuminate\Support\Facades\Notification::assertSentTo($this->user, \App\Notifications\RecipeUpdated::class,
+            fn ($notification) => $notification->title === 'Lasagne 3' && $notification->url === '/recipes/'.$copy->slug);
+        \Illuminate\Support\Facades\Notification::assertNotSentTo($owner, \App\Notifications\RecipeUpdated::class);
+        \Illuminate\Support\Facades\Notification::assertCount(1);
+    }
 }
