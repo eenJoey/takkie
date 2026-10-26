@@ -17,7 +17,7 @@
                         <span>{{ $group['emoji'] }}</span> {{ $group['label'] }}
                         <span class="text-sm font-semibold text-muted-foreground">({{ $group['items']->count() }})</span>
                     </h2>
-                    <div class="grid gap-3 sm:grid-cols-2">
+                    <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                         @foreach ($group['items'] as $task)
                             @php $overdue = $task->isOverdue($today); @endphp
                             <div wire:key="task-{{ $task->id }}" @class([

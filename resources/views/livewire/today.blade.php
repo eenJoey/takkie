@@ -52,7 +52,7 @@
             <x-empty-state emoji="✨" title="Niks te doen" description="Geniet ervan, of voeg een nieuwe taak toe." />
         @else
             @php $future = $offset > 0; @endphp
-            <div class="space-y-2.5">
+            <div class="grid gap-2.5 lg:grid-cols-2">
                 @foreach ($this->tasks as $task)
                     @php
                         $overdue = $task->isOverdue($this->today);

@@ -30,7 +30,7 @@
 
         <div class="min-h-screen bg-screen">
             <header class="sticky top-0 z-30 border-b border-border bg-background/85 backdrop-blur">
-                <div class="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3 lg:px-8">
+                <div class="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 lg:px-8">
                     <a href="{{ route('recipes.discover') }}" wire:navigate>
                         <img src="{{ asset('images/takkie-text-logo.png') }}" alt="Takkie" class="h-auto w-16">
                     </a>
@@ -42,7 +42,7 @@
                 </div>
             </header>
 
-            <main class="mx-auto w-full max-w-5xl px-4 py-6 lg:px-8">
+            <main class="mx-auto w-full max-w-7xl px-4 py-6 lg:px-8">
                 {{ $slot }}
             </main>
         </div>

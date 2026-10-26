@@ -12,7 +12,7 @@
         @endif
     </x-card>
 
-    <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
         @forelse ($recipes as $recipe)
             <x-card wire:key="public-recipe-{{ $recipe->id }}" class="flex flex-col gap-3">
                 <h3 class="break-words text-lg font-bold">{{ $recipe->title }}</h3>
@@ -30,7 +30,7 @@
                 </div>
             </x-card>
         @empty
-            <x-empty-state emoji="🔎" title="Geen openbare recepten gevonden." description="Probeer een ander zoekwoord." class="sm:col-span-2 lg:col-span-3" />
+            <x-empty-state emoji="🔎" title="Geen openbare recepten gevonden." description="Probeer een ander zoekwoord." class="sm:col-span-2 lg:col-span-3 2xl:col-span-4" />
         @endforelse
     </div>
 

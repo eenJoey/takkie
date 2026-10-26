@@ -10,6 +10,7 @@
         </x-button>
     </div>
 
+    <div class="grid items-start gap-6 lg:grid-cols-2">
     <section>
         <h2 class="mb-3 text-lg font-bold">Leden</h2>
         <div class="divide-y divide-border rounded-2xl bg-card shadow-card">
@@ -75,6 +76,7 @@
             Huishouden verlaten
         </x-button>
     @endif
+    </div>
 
     <x-dialog name="new-household" title="Nieuw huishouden">
         <form wire:submit="createHousehold" class="space-y-3">

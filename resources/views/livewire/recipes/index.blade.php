@@ -13,7 +13,7 @@
         <x-input wire:model.live.debounce.300ms="search" type="search" placeholder="Zoek recepten..." aria-label="Zoek recepten" />
     </x-card>
 
-    <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
         @forelse ($recipes as $recipe)
             <x-card wire:key="recipe-{{ $recipe->id }}" class="flex flex-col gap-3">
                 <div class="flex flex-wrap items-center gap-2">
@@ -35,7 +35,7 @@
                 </div>
             </x-card>
         @empty
-            <x-empty-state emoji="📖" title="Nog geen recepten gevonden." class="sm:col-span-2 lg:col-span-3">
+            <x-empty-state emoji="📖" title="Nog geen recepten gevonden." class="sm:col-span-2 lg:col-span-3 2xl:col-span-4">
                 <p class="mt-2 text-sm">
                     <a href="{{ route('recipes.discover') }}" wire:navigate class="font-semibold underline hover:text-primary">Ontdek openbare recepten</a>
                 </p>

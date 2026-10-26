@@ -1,5 +1,5 @@
-<div class="max-w-lg space-y-6">
-    <x-page-header title="Profiel" subtitle="Beheer je gegevens en voorkeuren." />
+<div class="grid max-w-lg items-start gap-6 lg:max-w-none lg:grid-cols-2">
+    <x-page-header title="Profiel" subtitle="Beheer je gegevens en voorkeuren." class="lg:col-span-2" />
 
     <section class="space-y-5 rounded-3xl bg-card p-6 shadow-card">
         <div class="flex items-center gap-4" x-data>
@@ -79,7 +79,7 @@
 
     <livewire:profile.notification-settings />
 
-    <form method="POST" action="{{ route('logout') }}">
+    <form method="POST" action="{{ route('logout') }}" class="lg:col-span-2">
         @csrf
         <x-button type="submit" variant="outline" class="rounded-full">
             <x-icon name="log-out" />

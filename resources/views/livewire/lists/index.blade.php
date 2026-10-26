@@ -23,7 +23,7 @@
     </x-card>
     </div>
 
-    <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
         @forelse ($lists as $list)
             <x-card wire:key="list-{{ $list->id }}" class="flex flex-col justify-center">
                 <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
@@ -36,7 +36,7 @@
                 </div>
             </x-card>
         @empty
-            <x-empty-state emoji="📝" title="Nog geen lijstjes." class="sm:col-span-2 lg:col-span-3" />
+            <x-empty-state emoji="📝" title="Nog geen lijstjes." class="sm:col-span-2 lg:col-span-3 2xl:col-span-4" />
         @endforelse
     </div>
 </div>
