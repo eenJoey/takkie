@@ -8,11 +8,12 @@ use App\Models\Scopes\HouseholdScope;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
 /** Recept van een huishouden; kan openbaar gemaakt worden (MIGRATIE-PLAN.md, sectie e). */
-#[Fillable(['household_id', 'created_by', 'title', 'slug', 'instructions', 'visibility', 'published_at'])]
+#[Fillable(['household_id', 'created_by', 'source_recipe_id', 'title', 'slug', 'instructions', 'visibility', 'published_at', 'copied_at'])]
 class Recipe extends Model
 {
     use BelongsToHousehold;
@@ -36,6 +37,7 @@ class Recipe extends Model
         return [
             'visibility' => RecipeVisibility::class,
             'published_at' => 'datetime',
+            'copied_at' => 'datetime',
         ];
     }
 
@@ -52,6 +54,18 @@ class Recipe extends Model
     public function tags(): HasMany
     {
         return $this->hasMany(RecipeTag::class)->orderBy('name');
+    }
+
+    /** Kopie van een openbaar recept (alleen-lezen). Ook als het origineel inmiddels verwijderd is. */
+    public function isCopy(): bool
+    {
+        return $this->copied_at !== null;
+    }
+
+    /** Het origineel; buiten de huishoud-scope, want het hoort bij een ander huishouden. */
+    public function source(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'source_recipe_id')->withoutGlobalScope(HouseholdScope::class);
     }
 
     public function isPublic(): bool

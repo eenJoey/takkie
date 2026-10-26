@@ -225,4 +225,76 @@ class RecipesTest extends TestCase
         $this->get(route('recipes.create'))->assertRedirect('/login');
         $this->get(route('recipes.discover'))->assertOk();
     }
+
+    public function test_public_recipe_can_be_added_as_a_read_only_copy(): void
+    {
+        $source = $this->recipeIn($this->otherHousehold(), ['title' => 'Lasagne', 'instructions' => 'Laagjes maken', 'visibility' => RecipeVisibility::Public], ['Pasta', 'Saus'], ['Italiaans']);
+
+        Livewire::test(Show::class, ['slug' => $source->slug])
+            ->assertSee('Toevoegen aan mijn recepten')
+            ->call('addToMyRecipes')
+            ->assertRedirect();
+
+        $copy = Recipe::where('source_recipe_id', $source->id)->sole();
+        $this->assertSame($this->household->id, $copy->household_id);
+        $this->assertTrue($copy->isCopy());
+        $this->assertFalse($copy->isPublic());
+        $this->assertSame('Laagjes maken', $copy->instructions);
+        $this->assertSame(['Pasta', 'Saus'], $copy->ingredients->pluck('text')->all());
+        $this->assertSame(['Italiaans'], $copy->tags->pluck('name')->all());
+
+        // nog een keer toevoegen maakt geen tweede kopie
+        Livewire::test(Show::class, ['slug' => $source->slug])->assertSee('Staat al in je recepten')->call('addToMyRecipes');
+        $this->assertSame(1, Recipe::where('source_recipe_id', $source->id)->count());
+
+        // alleen-lezen: geen bewerken, wel afvinken
+        $this->get(route('recipes.edit', $copy))->assertForbidden();
+        Livewire::test(Show::class, ['slug' => $copy->slug])
+            ->assertSee('Kopie van een openbaar recept')
+            ->assertDontSee('Bewerken')
+            ->call('toggleItem', $copy->ingredients->first()->id);
+        $this->assertTrue($copy->ingredients()->first()->is_checked);
+        $this->get(route('recipes.index'))->assertSee('Kopie');
+    }
+
+    public function test_copy_stays_when_the_original_is_deleted(): void
+    {
+        $source = $this->recipeIn($this->otherHousehold(), ['title' => 'Lasagne', 'visibility' => RecipeVisibility::Public], ['Pasta']);
+        $copy = app(\App\Actions\CopyPublicRecipe::class)->handle($this->user, $source, $this->household);
+
+        Recipe::withoutGlobalScopes()->whereKey($source->id)->delete();
+
+        $copy = Recipe::find($copy->id);
+        $this->assertNotNull($copy);
+        $this->assertNull($copy->source_recipe_id);
+        $this->assertTrue($copy->isCopy());
+        $this->get(route('recipes.show', $copy))->assertOk()
+            ->assertSee('Lasagne')
+            ->assertSee('Pasta')
+            ->assertSee('Het originele recept is verwijderd');
+        $this->get(route('recipes.edit', $copy))->assertForbidden();
+    }
+
+    public function test_only_public_recipes_of_another_household_can_be_copied_and_copies_can_be_deleted(): void
+    {
+        $private = $this->recipeIn($this->otherHousehold(), ['title' => 'Geheim']);
+        $own = $this->recipeIn($this->household, ['title' => 'Eigen', 'visibility' => RecipeVisibility::Public]);
+        $copyAction = app(\App\Actions\CopyPublicRecipe::class);
+
+        foreach ([$private, $own] as $recipe) {
+            try {
+                $copyAction->handle($this->user, $recipe, $this->household);
+                $this->fail('Kopiëren had geweigerd moeten worden');
+            } catch (\Illuminate\Auth\Access\AuthorizationException) {
+            }
+        }
+
+        Livewire::test(Show::class, ['slug' => $own->slug])->assertDontSee('Toevoegen aan mijn recepten')->call('deleteCopy')->assertForbidden();
+
+        $public = $this->recipeIn($this->otherHousehold(), ['title' => 'Soep', 'visibility' => RecipeVisibility::Public]);
+        $copy = $copyAction->handle($this->user, $public, $this->household);
+        Livewire::test(Show::class, ['slug' => $copy->slug])->call('deleteCopy')->assertRedirect(route('recipes.index'));
+        $this->assertModelMissing($copy);
+        $this->assertModelExists($public);
+    }
 }
