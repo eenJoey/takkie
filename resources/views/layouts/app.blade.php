@@ -22,6 +22,8 @@
         @livewireStyles
     </head>
     <body class="min-h-screen">
+        <x-toaster />
+
         <div class="flex min-h-screen bg-screen">
             {{-- Desktop sidebar --}}
             <aside class="hidden w-64 flex-col border-r border-sidebar-border bg-sidebar lg:flex">
@@ -43,6 +45,15 @@
                         </a>
                     @endforeach
                 </nav>
+                <div class="border-t border-sidebar-border p-4">
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit" class="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold text-muted-foreground hover:bg-sidebar-accent">
+                            <x-icon name="log-out" />
+                            Uitloggen
+                        </button>
+                    </form>
+                </div>
             </aside>
 
             {{-- Main --}}
@@ -52,7 +63,14 @@
                         <a href="{{ route('lists.index') }}" wire:navigate class="lg:hidden">
                             <img src="{{ asset('images/takkie-text-logo.png') }}" alt="Takkie" class="h-auto w-16">
                         </a>
-                        <h2 class="truncate text-lg font-bold">{{ $household?->name ?? 'Welkom' }}</h2>
+                        <h2 class="min-w-0 flex-1 truncate text-lg font-bold lg:text-left">{{ $household?->name ?? 'Welkom' }}</h2>
+                        {{-- Op mobiel tijdelijk hier; in M8 verhuist uitloggen naar de profielpagina (zoals vinkie lovable) --}}
+                        <form method="POST" action="{{ route('logout') }}" class="lg:hidden">
+                            @csrf
+                            <x-button type="submit" variant="icon" aria-label="Uitloggen">
+                                <x-icon name="log-out" class="size-5" />
+                            </x-button>
+                        </form>
                     </div>
                 </header>
 
