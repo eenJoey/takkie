@@ -4,6 +4,7 @@ namespace App\Livewire\Lists;
 
 use App\Enums\CategoryColor;
 use App\Models\TodoList;
+use App\Support\CurrentHousehold;
 use Illuminate\View\View;
 use Livewire\Component;
 
@@ -24,10 +25,18 @@ class Show extends Component
 
     public bool $isAddingCategory = false;
 
-    public function mount(TodoList $list): void
+    /** Zonder lijst (route /taken): de vaste "Huishoudtaken" van het huidige huishouden. */
+    public function mount(?TodoList $list = null): void
     {
+        $list = $list?->exists ? $list : app(CurrentHousehold::class)->get()->tasksList();
+
         $this->authorize('view', $list);
         $this->list = $list;
+
+        // de takenlijst heeft een eigen adres en menu-item ("Taken")
+        if (! $list->isChecklist() && request()->routeIs('lists.show')) {
+            $this->redirectRoute('tasks', navigate: true);
+        }
     }
 
     public function addCategory(): void

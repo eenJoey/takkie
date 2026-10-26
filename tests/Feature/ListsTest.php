@@ -67,8 +67,8 @@ class ListsTest extends TestCase
             ->set('search', 'huishoud')
             ->assertDontSee('Huishoudtaken');
 
-        // nog wel gewoon te openen (via Vandaag → Alle taken)
-        $this->get(route('lists.show', $tasksList))->assertOk();
+        // wel bereikbaar via het menu-item "Taken" (/taken)
+        $this->get(route('lists.show', $tasksList))->assertRedirect(route('tasks'));
     }
 
     public function test_list_of_another_household_returns_404(): void

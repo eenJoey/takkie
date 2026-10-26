@@ -71,12 +71,26 @@ class TasksTest extends TestCase
         $this->task(['title' => 'Stofzuigen', 'recurrence_type' => RecurrenceType::Weekly]);
         $this->task(['title' => 'Planten water', 'recurrence_type' => RecurrenceType::Daily, 'recurrence_interval' => 2]);
 
-        $this->get(route('lists.show', $this->tasksList))
-            ->assertOk()
-            ->assertSeeLivewire(Board::class);
+        // vinkie-menu-item "Taken" → /taken; het oude lijst-adres stuurt daarheen door
+        $this->get('/')->assertSee(route('tasks'))->assertSee('Taken');
+        $this->get(route('tasks'))->assertOk()->assertSeeLivewire(Board::class)->assertSee('Stofzuigen');
+        $this->get(route('lists.show', $this->tasksList))->assertRedirect(route('tasks'));
 
         Livewire::test(Board::class, ['list' => $this->tasksList])
             ->assertSeeInOrder(['Dagelijks', 'Planten water', 'Elke 2d', 'Wekelijks', 'Stofzuigen', 'Elke 1w']);
+    }
+
+    public function test_missing_tasks_list_is_recreated_so_taken_and_vandaag_keep_working(): void
+    {
+        // zoals in je lokale database na het handmatig koppelen: de lijst "Huishoudtaken" is weg
+        $this->tasksList->delete();
+        $this->assertSame(0, TodoList::where('type', ListType::Tasks)->count());
+
+        $this->get('/dashboard')->assertOk()->assertSee('Alle taken');
+        $this->get(route('tasks'))->assertOk()->assertSee('Nog geen taken');
+
+        $this->assertSame(1, TodoList::where('type', ListType::Tasks)->count());
+        $this->assertSame('Huishoudtaken', TodoList::where('type', ListType::Tasks)->sole()->name);
     }
 
     public function test_create_task_via_the_form(): void
@@ -262,7 +276,7 @@ class TasksTest extends TestCase
 
     public function test_the_fixed_tasks_list_page_still_cannot_be_deleted(): void
     {
-        Livewire::test(Show::class, ['list' => $this->tasksList])->assertSee('Huishoudtaken');
+        Livewire::test(Show::class, ['list' => $this->tasksList])->assertSee('Taken');
         $this->assertFalse($this->user->can('delete', $this->tasksList));
     }
 }

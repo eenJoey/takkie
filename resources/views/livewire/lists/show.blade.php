@@ -1,12 +1,16 @@
 <div @if ($list->isChecklist()) wire:poll.5s.visible @endif>
-    <x-page-header :title="$list->name" :subtitle="$list->isChecklist() ? 'Checklist' : 'Takenlijst'">
-        <x-slot:actions>
-            <x-button size="sm" variant="secondary" :href="$list->isChecklist() ? route('lists.index') : route('dashboard')" wire:navigate>
-                <x-icon name="arrow-left" />
-                Terug
-            </x-button>
-        </x-slot:actions>
-    </x-page-header>
+    @if ($list->isChecklist())
+        <x-page-header :title="$list->name" subtitle="Checklist">
+            <x-slot:actions>
+                <x-button size="sm" variant="secondary" :href="route('lists.index')" wire:navigate>
+                    <x-icon name="arrow-left" />
+                    Terug
+                </x-button>
+            </x-slot:actions>
+        </x-page-header>
+    @else
+        <x-page-header title="Taken" />
+    @endif
 
     @if (! $list->isChecklist())
         <livewire:tasks.board :list="$list" :key="'board-'.$list->id" />
