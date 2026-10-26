@@ -123,6 +123,10 @@
         -webkit-font-smoothing: antialiased;
     }
 
+    [x-cloak] {
+        display: none !important;
+    }
+
     button:not(:disabled),
     [role='button']:not(:disabled) {
         cursor: pointer;
@@ -136,6 +140,11 @@
 
     .shadow-card {
         box-shadow: var(--shadow-card);
+    }
+
+    /* vinkie --gradient-warm (primary → accent, 135°), o.a. voor avatar-rondjes */
+    .bg-gradient-warm {
+        background-image: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
     }
 
     /* takkie-schermachtergrond (135°, crème → zacht blauw) */

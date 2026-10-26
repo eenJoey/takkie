@@ -52,6 +52,27 @@ class CurrentHousehold
         $this->manual = true;
     }
 
+    /**
+     * Voer iets uit binnen een ander huishouden (bijv. bij het aanmaken van een nieuw huishouden),
+     * en zet daarna de vorige toestand terug.
+     *
+     * @template T
+     *
+     * @param  callable(): T  $callback
+     * @return T
+     */
+    public function runAs(Household $household, callable $callback): mixed
+    {
+        $previous = [$this->household, $this->manual, $this->resolved, $this->resolvedForUserId];
+        $this->set($household);
+
+        try {
+            return $callback();
+        } finally {
+            [$this->household, $this->manual, $this->resolved, $this->resolvedForUserId] = $previous;
+        }
+    }
+
     public function forget(): void
     {
         $this->household = null;

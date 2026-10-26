@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\HouseholdRole;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -50,5 +51,21 @@ class User extends Authenticatable
         $id = $household instanceof Household ? $household->id : $household;
 
         return $id !== null && $this->households()->whereKey($id)->exists();
+    }
+
+    public function isOwnerOf(Household|int|null $household): bool
+    {
+        $id = $household instanceof Household ? $household->id : $household;
+
+        return $id !== null && $this->households()
+            ->whereKey($id)
+            ->wherePivot('role', HouseholdRole::Owner->value)
+            ->exists();
+    }
+
+    /** Eerste letter van de naam, voor het avatar-rondje (vinkie UserAvatar zonder foto). */
+    public function initial(): string
+    {
+        return mb_strtoupper(mb_substr($this->name ?: $this->email, 0, 1));
     }
 }

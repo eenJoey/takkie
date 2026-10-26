@@ -32,9 +32,11 @@ class ListsTest extends TestCase
         $this->get('/')->assertRedirect('/login');
     }
 
-    public function test_user_without_household_is_refused(): void
+    public function test_user_without_household_cannot_open_a_list(): void
     {
-        $this->actingAs(User::factory()->create())->get('/')->assertForbidden();
+        $list = TodoList::factory()->create();
+
+        $this->actingAs(User::factory()->create())->get(route('lists.show', $list->id))->assertRedirect('/onboarding');
     }
 
     public function test_lists_page_is_the_home_screen_and_only_shows_own_household(): void

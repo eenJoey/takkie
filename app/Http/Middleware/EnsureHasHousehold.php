@@ -9,7 +9,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Zorgt dat er een huidig huishouden is en onthoudt de keuze op de gebruiker.
- * M3: zonder huishouden volgt een redirect naar /onboarding; tot die tijd 403.
+ * Zonder huishouden: naar /onboarding (zoals vinkie's _app-guard).
  */
 class EnsureHasHousehold
 {
@@ -19,7 +19,12 @@ class EnsureHasHousehold
     {
         $household = $this->current->get();
 
-        abort_if($household === null, 403, 'Je bent nog geen lid van een huishouden.');
+        if ($household === null) {
+            // toast van de vorige stap (bijv. "Account aangemaakt!") meenemen naar onboarding
+            $request->session()->reflash();
+
+            return redirect()->route('onboarding');
+        }
 
         $user = $request->user();
 
