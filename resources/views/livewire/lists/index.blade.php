@@ -1,11 +1,12 @@
 <div>
     <x-page-header title="Lijstjes" subtitle="Maak een nieuwe lijst of open een bestaande." />
 
-    <x-card class="mb-4">
+    <div class="mb-4 grid gap-4 md:grid-cols-2">
+    <x-card>
         <x-input wire:model.live.debounce.300ms="search" type="search" placeholder="Zoek lijstjes..." aria-label="Zoek lijstjes" />
     </x-card>
 
-    <x-card class="mb-4">
+    <x-card>
         <form wire:submit="create">
             <label for="new-list-name" class="mb-2 block text-sm font-semibold text-muted-foreground">Nieuwe lijst</label>
             <div class="flex gap-2">
@@ -20,10 +21,11 @@
             @enderror
         </form>
     </x-card>
+    </div>
 
-    <div class="space-y-3">
+    <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         @forelse ($lists as $list)
-            <x-card wire:key="list-{{ $list->id }}">
+            <x-card wire:key="list-{{ $list->id }}" class="flex flex-col justify-center">
                 <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
                     <h3 class="min-w-0 flex-1 basis-40 break-words text-lg font-bold">{{ $list->name }}</h3>
                     <div class="flex shrink-0 items-center gap-2">
@@ -40,7 +42,7 @@
                 </div>
             </x-card>
         @empty
-            <x-empty-state emoji="📝" title="Nog geen lijstjes." />
+            <x-empty-state emoji="📝" title="Nog geen lijstjes." class="sm:col-span-2 lg:col-span-3" />
         @endforelse
     </div>
 </div>

@@ -9,10 +9,9 @@
     </x-page-header>
 
     @if (! $list->isChecklist())
-        {{-- De takenweergave (punten, herhaling) komt in M4 --}}
-        <x-empty-state emoji="🌿" title="Takenlijst" description="De weergave voor taken met punten volgt in een volgende stap." />
+        <livewire:tasks.board :list="$list" :key="'board-'.$list->id" />
     @else
-        <div class="space-y-4">
+        <div class="grid items-start gap-4 md:grid-cols-2">
             @foreach ($categories as $category)
                 @php $open = $category->tasks->whereNull('completed_at')->count(); @endphp
                 <x-card wire:key="category-{{ $category->id }}">
@@ -63,7 +62,7 @@
             @endforeach
 
             @if ($isAddingCategory)
-                <x-card>
+                <x-card class="md:col-span-2">
                     <form wire:submit="addCategory" class="flex gap-2">
                         <x-input wire:model="newCategoryName" placeholder="Naam categorie..." maxlength="255" autofocus />
                         <x-button type="submit" class="min-w-11">
@@ -73,7 +72,7 @@
                     </form>
                 </x-card>
             @else
-                <x-button variant="ghost-dashed" size="lg" wire:click="$set('isAddingCategory', true)">
+                <x-button variant="ghost-dashed" size="lg" class="md:col-span-2" wire:click="$set('isAddingCategory', true)">
                     <x-icon name="plus" class="size-5" />
                     Nieuwe categorie
                 </x-button>

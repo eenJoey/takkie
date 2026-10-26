@@ -4,6 +4,7 @@
     // Navigatie volgens vinkie's AppShell. Items komen erbij per mijlpaal (zie MIGRATIE-PLAN.md, sectie k).
     $navItems = [
         ['route' => 'lists.index', 'active' => 'lists.*', 'label' => 'Lijstjes', 'icon' => 'list-checks'],
+        ['route' => 'dashboard', 'active' => 'dashboard', 'label' => 'Vandaag', 'icon' => 'home'],
         ['route' => 'household', 'active' => 'household', 'label' => 'Huishouden', 'icon' => 'users'],
     ];
     $household = app(\App\Support\CurrentHousehold::class)->get();
@@ -71,6 +72,7 @@
                             <livewire:shared.household-switcher key="switcher-header" />
                         </div>
                         <h2 class="hidden min-w-0 flex-1 truncate text-lg font-bold lg:block">{{ $household?->name ?? 'Welkom' }}</h2>
+                        <livewire:shared.points-badge key="points-badge" />
                         {{-- Op mobiel tijdelijk hier; in M8 verhuist uitloggen naar de profielpagina (zoals vinkie lovable) --}}
                         <form method="POST" action="{{ route('logout') }}" class="lg:hidden">
                             @csrf
@@ -81,7 +83,7 @@
                     </div>
                 </header>
 
-                <main class="mx-auto w-full max-w-md flex-1 px-4 py-6 pb-28 lg:pb-10">
+                <main class="mx-auto w-full max-w-5xl flex-1 px-4 py-6 pb-28 lg:px-8 lg:pb-10">
                     {{ $slot }}
                 </main>
 

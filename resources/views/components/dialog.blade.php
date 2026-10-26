@@ -6,7 +6,7 @@
 --}}
 <div
     x-data="{ open: false }"
-    x-on:open-dialog.window="if ($event.detail === @js($name)) open = true"
+    x-on:open-dialog.window="if (($event.detail?.name ?? $event.detail) === @js($name)) open = true"
     x-on:close-dialog.window="open = false"
     x-on:keydown.escape.window="open = false"
 >

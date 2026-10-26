@@ -68,6 +68,12 @@ return [
     'timezone' => 'UTC',
 
     /*
+    | Tijdzone voor "vandaag", vervaldatums en weergave (opslag blijft UTC).
+    */
+
+    'local_timezone' => env('APP_LOCAL_TIMEZONE', 'Europe/Amsterdam'),
+
+    /*
     |--------------------------------------------------------------------------
     | Application Locale Configuration
     |--------------------------------------------------------------------------
