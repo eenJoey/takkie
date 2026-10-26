@@ -31,6 +31,21 @@
         </div>
     @endif
 
+    @if ($hasUpdate)
+        <div class="mb-4 flex flex-col gap-3 rounded-2xl border-2 border-primary bg-primary/10 px-4 py-3 text-sm sm:flex-row sm:items-center">
+            <x-icon name="bell" class="hidden size-5 shrink-0 sm:block" />
+            <p class="flex-1">
+                <span class="font-semibold">Het originele recept is aangepast.</span>
+                Wil je de nieuwe versie overnemen? Je huidige kopie wordt dan vervangen.
+                <a href="{{ route('recipes.show', $source->slug) }}" class="font-semibold text-link underline">Bekijk de nieuwe versie</a>
+            </p>
+            <div class="flex shrink-0 gap-2">
+                <x-button size="sm" wire:click="acceptSourceUpdate" wire:loading.attr="disabled">Overnemen</x-button>
+                <x-button size="sm" variant="secondary" wire:click="dismissSourceUpdate" wire:loading.attr="disabled">Niet overnemen</x-button>
+            </div>
+        </div>
+    @endif
+
     @if ($existingCopy)
         <div class="mb-4">
             <x-button size="sm" variant="secondary" :href="route('recipes.show', $existingCopy)">

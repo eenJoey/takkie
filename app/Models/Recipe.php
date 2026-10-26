@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
 /** Recept van een huishouden; kan openbaar gemaakt worden (MIGRATIE-PLAN.md, sectie e). */
-#[Fillable(['household_id', 'created_by', 'source_recipe_id', 'title', 'slug', 'instructions', 'visibility', 'published_at', 'copied_at'])]
+#[Fillable(['household_id', 'created_by', 'source_recipe_id', 'title', 'slug', 'instructions', 'visibility', 'published_at', 'content_changed_at', 'copied_at', 'source_synced_at'])]
 class Recipe extends Model
 {
     use BelongsToHousehold;
@@ -37,7 +37,9 @@ class Recipe extends Model
         return [
             'visibility' => RecipeVisibility::class,
             'published_at' => 'datetime',
+            'content_changed_at' => 'datetime',
             'copied_at' => 'datetime',
+            'source_synced_at' => 'datetime',
         ];
     }
 
@@ -60,6 +62,16 @@ class Recipe extends Model
     public function isCopy(): bool
     {
         return $this->copied_at !== null;
+    }
+
+    /** Kopie waarvan het (nog openbare) origineel is aangepast na de versie die we hebben. Laadt `source`. */
+    public function hasSourceUpdate(): bool
+    {
+        $changedAt = $this->isCopy() ? $this->source?->content_changed_at : null;
+
+        return $changedAt !== null
+            && $this->source->isPublic()
+            && ($this->source_synced_at === null || $changedAt->gt($this->source_synced_at));
     }
 
     /** Het origineel; buiten de huishoud-scope, want het hoort bij een ander huishouden. */

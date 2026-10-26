@@ -17,6 +17,7 @@ class Index extends Component
     {
         $recipes = Recipe::query()
             ->search($this->search)
+            ->with('source')
             ->withCount([
                 'ingredients',
                 'ingredients as remaining_count' => fn ($query) => $query->where('is_checked', false),

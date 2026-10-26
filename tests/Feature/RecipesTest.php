@@ -297,4 +297,66 @@ class RecipesTest extends TestCase
         $this->assertModelMissing($copy);
         $this->assertModelExists($public);
     }
+
+    public function test_copies_get_a_notice_when_the_original_changes_and_can_take_it_over(): void
+    {
+        $neighbours = $this->otherHousehold();
+        $owner = $neighbours->users()->first();
+        $source = $this->recipeIn($neighbours, ['title' => 'Lasagne', 'visibility' => RecipeVisibility::Public], ['Pasta', 'Saus']);
+        $copy = app(\App\Actions\CopyPublicRecipe::class)->handle($this->user, $source, $this->household);
+        $copy->ingredients()->where('text', 'Pasta')->update(['is_checked' => true]);
+
+        $this->assertFalse($copy->fresh()->hasSourceUpdate());
+
+        // alleen opslaan zonder wijziging: geen melding
+        $this->actingAs($owner);
+        Livewire::test(Form::class, ['recipe' => $source])->call('save');
+        $this->assertNull($source->fresh()->content_changed_at);
+
+        $this->travel(1)->minutes();
+        Livewire::test(Form::class, ['recipe' => $source])->set('title', 'Lasagne de luxe')->set('newItemText', 'Kaas')->call('save');
+        $this->assertNotNull($source->fresh()->content_changed_at);
+
+        $this->actingAs($this->user);
+        $this->assertTrue($copy->fresh()->hasSourceUpdate());
+        $this->get(route('recipes.index'))->assertSee('Nieuwe versie');
+        Livewire::test(Show::class, ['slug' => $copy->slug])
+            ->assertSee('Het originele recept is aangepast.')
+            ->call('acceptSourceUpdate')
+            ->assertDispatched('toast', type: 'success', message: 'Nieuwe versie overgenomen');
+
+        $copy = $copy->fresh();
+        $this->assertSame('Lasagne de luxe', $copy->title);
+        $this->assertSame(['Pasta', 'Saus', 'Kaas'], $copy->ingredients->pluck('text')->all());
+        $this->assertSame([true, false, false], $copy->ingredients->pluck('is_checked')->all());
+        $this->assertFalse($copy->hasSourceUpdate());
+        $this->assertTrue($copy->isCopy());
+    }
+
+    public function test_a_change_can_be_ignored_and_the_next_change_notifies_again(): void
+    {
+        $neighbours = $this->otherHousehold();
+        $owner = $neighbours->users()->first();
+        $source = $this->recipeIn($neighbours, ['title' => 'Soep', 'visibility' => RecipeVisibility::Public], ['Water']);
+        $copy = app(\App\Actions\CopyPublicRecipe::class)->handle($this->user, $source, $this->household);
+
+        $this->travel(1)->minutes();
+        $this->actingAs($owner);
+        Livewire::test(Form::class, ['recipe' => $source])->set('title', 'Tomatensoep')->call('save');
+
+        $this->actingAs($this->user);
+        Livewire::test(Show::class, ['slug' => $copy->slug])->call('dismissSourceUpdate');
+        $this->assertSame('Soep', $copy->fresh()->title);
+        $this->assertFalse($copy->fresh()->hasSourceUpdate());
+
+        $this->travel(1)->minutes();
+        $this->actingAs($owner);
+        Livewire::test(Form::class, ['recipe' => $source])->set('instructions', 'Koken')->call('save');
+        $this->actingAs($this->user);
+        $this->assertTrue($copy->fresh()->hasSourceUpdate());
+
+        // origineel weer privé: geen melding meer
+        Recipe::withoutGlobalScopes()->whereKey($source->id)->update(['visibility' => RecipeVisibility::Private]);
+        $this->assertFalse($copy->fresh()->hasSourceUpdate());
+    }
 }
