@@ -5,7 +5,7 @@
     </div>
 
     @if ($this->tasksList)
-        {{-- vinkie QuickCards; "Beloningen" komt erbij in M5 --}}
+        {{-- vinkie QuickCards --}}
         <div class="grid gap-3 sm:grid-cols-2">
         <a href="{{ route('lists.show', $this->tasksList) }}" wire:navigate
             class="group flex items-center justify-between rounded-2xl bg-card p-4 shadow-card transition hover:shadow-soft">
@@ -14,6 +14,16 @@
                     <x-icon name="list-checks" class="size-5" />
                 </div>
                 <span class="font-bold">Alle taken</span>
+            </div>
+            <x-icon name="arrow-right" class="text-muted-foreground transition group-hover:translate-x-1" />
+        </a>
+        <a href="{{ route('rewards') }}" wire:navigate
+            class="group flex items-center justify-between rounded-2xl bg-card p-4 shadow-card transition hover:shadow-soft">
+            <div class="flex items-center gap-3">
+                <div class="flex size-10 items-center justify-center rounded-xl bg-gradient-warm text-primary-foreground">
+                    <x-icon name="gift" class="size-5" />
+                </div>
+                <span class="font-bold">Beloningen</span>
             </div>
             <x-icon name="arrow-right" class="text-muted-foreground transition group-hover:translate-x-1" />
         </a>
