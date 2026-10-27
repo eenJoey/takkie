@@ -26,6 +26,10 @@
                         </p>
                         <p class="truncate text-xs text-muted-foreground">{{ $member->email }}</p>
                     </div>
+                    @php $memberStreak = \App\Support\Streak::for($member, $this->household->id); @endphp
+                    @if ($memberStreak > 0)
+                        <span class="shrink-0 text-sm font-bold" title="{{ $memberStreak }} dagen op rij">🔥 {{ $memberStreak }}</span>
+                    @endif
                     @if ($member->pivot->role === \App\Enums\HouseholdRole::Owner)
                         <x-icon name="crown" class="size-4 text-warning" />
                         <span class="sr-only">Eigenaar</span>

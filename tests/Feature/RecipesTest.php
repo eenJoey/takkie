@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Actions\CopyPublicRecipe;
 use App\Actions\CreateHousehold;
 use App\Enums\RecipeVisibility;
 use App\Livewire\Recipes\Discover;
@@ -12,8 +13,11 @@ use App\Models\Household;
 use App\Models\Recipe;
 use App\Models\RecipeIngredient;
 use App\Models\User;
+use App\Notifications\RecipeUpdated;
 use App\Support\CurrentHousehold;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -260,7 +264,7 @@ class RecipesTest extends TestCase
     public function test_copy_stays_when_the_original_is_deleted(): void
     {
         $source = $this->recipeIn($this->otherHousehold(), ['title' => 'Lasagne', 'visibility' => RecipeVisibility::Public], ['Pasta']);
-        $copy = app(\App\Actions\CopyPublicRecipe::class)->handle($this->user, $source, $this->household);
+        $copy = app(CopyPublicRecipe::class)->handle($this->user, $source, $this->household);
 
         Recipe::withoutGlobalScopes()->whereKey($source->id)->delete();
 
@@ -279,13 +283,13 @@ class RecipesTest extends TestCase
     {
         $private = $this->recipeIn($this->otherHousehold(), ['title' => 'Geheim']);
         $own = $this->recipeIn($this->household, ['title' => 'Eigen', 'visibility' => RecipeVisibility::Public]);
-        $copyAction = app(\App\Actions\CopyPublicRecipe::class);
+        $copyAction = app(CopyPublicRecipe::class);
 
         foreach ([$private, $own] as $recipe) {
             try {
                 $copyAction->handle($this->user, $recipe, $this->household);
                 $this->fail('Kopiëren had geweigerd moeten worden');
-            } catch (\Illuminate\Auth\Access\AuthorizationException) {
+            } catch (AuthorizationException) {
             }
         }
 
@@ -303,7 +307,7 @@ class RecipesTest extends TestCase
         $neighbours = $this->otherHousehold();
         $owner = $neighbours->users()->first();
         $source = $this->recipeIn($neighbours, ['title' => 'Lasagne', 'visibility' => RecipeVisibility::Public], ['Pasta', 'Saus']);
-        $copy = app(\App\Actions\CopyPublicRecipe::class)->handle($this->user, $source, $this->household);
+        $copy = app(CopyPublicRecipe::class)->handle($this->user, $source, $this->household);
         $copy->ingredients()->where('text', 'Pasta')->update(['is_checked' => true]);
 
         $this->assertFalse($copy->fresh()->hasSourceUpdate());
@@ -338,7 +342,7 @@ class RecipesTest extends TestCase
         $neighbours = $this->otherHousehold();
         $owner = $neighbours->users()->first();
         $source = $this->recipeIn($neighbours, ['title' => 'Soep', 'visibility' => RecipeVisibility::Public], ['Water']);
-        $copy = app(\App\Actions\CopyPublicRecipe::class)->handle($this->user, $source, $this->household);
+        $copy = app(CopyPublicRecipe::class)->handle($this->user, $source, $this->household);
 
         $this->travel(1)->minutes();
         $this->actingAs($owner);
@@ -362,13 +366,13 @@ class RecipesTest extends TestCase
 
     public function test_whoever_saved_a_copy_gets_a_push_when_the_original_changes(): void
     {
-        \Illuminate\Support\Facades\Notification::fake();
+        Notification::fake();
         $this->withoutDefer();
 
         $neighbours = $this->otherHousehold();
         $owner = $neighbours->users()->first();
         $source = $this->recipeIn($neighbours, ['title' => 'Lasagne', 'visibility' => RecipeVisibility::Public], ['Pasta']);
-        $copy = app(\App\Actions\CopyPublicRecipe::class)->handle($this->user, $source, $this->household);
+        $copy = app(CopyPublicRecipe::class)->handle($this->user, $source, $this->household);
         $this->user->updatePushSubscription('https://push.example.test/abc', 'key', 'token', 'aes128gcm');
 
         // zonder meldingen aan, of zonder echte wijziging: niets
@@ -376,14 +380,56 @@ class RecipesTest extends TestCase
         $this->actingAs($owner);
         Livewire::test(Form::class, ['recipe' => $source])->set('title', 'Lasagne 2')->call('save');
         Livewire::test(Form::class, ['recipe' => $source])->call('save');
-        \Illuminate\Support\Facades\Notification::assertNothingSent();
+        Notification::assertNothingSent();
 
         $this->user->notificationSettings()->update(['enabled' => true]);
         Livewire::test(Form::class, ['recipe' => $source])->set('title', 'Lasagne 3')->call('save');
 
-        \Illuminate\Support\Facades\Notification::assertSentTo($this->user, \App\Notifications\RecipeUpdated::class,
+        Notification::assertSentTo($this->user, RecipeUpdated::class,
             fn ($notification) => $notification->title === 'Lasagne 3' && $notification->url === '/recipes/'.$copy->slug);
-        \Illuminate\Support\Facades\Notification::assertNotSentTo($owner, \App\Notifications\RecipeUpdated::class);
-        \Illuminate\Support\Facades\Notification::assertCount(1);
+        Notification::assertNotSentTo($owner, RecipeUpdated::class);
+        Notification::assertCount(1);
+    }
+
+    public function test_servings_are_saved_and_portions_can_be_recalculated(): void
+    {
+        Livewire::test(Form::class)
+            ->set('title', 'Burrito')
+            ->set('servings', '4')
+            ->set('items', ['300 g gehakt', '8 wraps', 'naar smaak kaas'])
+            ->call('save');
+
+        $recipe = Recipe::where('title', 'Burrito')->sole();
+        $this->assertSame(4, $recipe->servings);
+
+        Livewire::test(Show::class, ['slug' => $recipe->slug])
+            ->assertSee('4 personen')
+            ->assertSee('300 g gehakt')
+            ->call('fewerPeople')->call('fewerPeople')
+            ->assertSee('2 personen')
+            ->assertSee('150 g gehakt')
+            ->assertSee('4 wraps')
+            ->assertSee('naar smaak kaas')
+            ->assertSee('Omgerekend van 4 naar 2 personen');
+
+        // opgeslagen recept blijft ongewijzigd
+        $this->assertSame(['300 g gehakt', '8 wraps', 'naar smaak kaas'], $recipe->ingredients()->pluck('text')->all());
+
+        // leeg laten mag
+        Livewire::test(Form::class, ['recipe' => $recipe])->set('servings', '')->call('save')->assertHasNoErrors();
+        $this->assertNull($recipe->fresh()->servings);
+        Livewire::test(Show::class, ['slug' => $recipe->slug])->assertDontSee('Meer personen');
+
+        Livewire::test(Form::class, ['recipe' => $recipe])->set('servings', '99')->call('save')->assertHasErrors(['servings' => 'max']);
+    }
+
+    public function test_copies_take_servings_along_and_guests_can_recalculate_too(): void
+    {
+        $source = $this->recipeIn($this->otherHousehold(), ['title' => 'Soep', 'servings' => 2, 'visibility' => RecipeVisibility::Public], ['1 l water']);
+        $copy = app(CopyPublicRecipe::class)->handle($this->user, $source, $this->household);
+        $this->assertSame(2, $copy->servings);
+
+        auth()->logout();
+        Livewire::test(Show::class, ['slug' => $source->slug])->call('morePeople')->call('morePeople')->assertSee('2 l water');
     }
 }

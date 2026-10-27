@@ -5,12 +5,14 @@ namespace App\Livewire\Lists;
 use App\Enums\CategoryColor;
 use App\Models\TodoList;
 use App\Support\CurrentHousehold;
+use App\Support\QuickAdd;
 use Illuminate\View\View;
 use Livewire\Component;
 
 /**
  * Lijstdetail. Voor type checklist: port van takkie ChecklistApp
  * (categorieën, items aan/uit vinken, toevoegen, verwijderen).
+ * Samen boodschappen doen: de lijst ververst elke 3 s en toont wie wat afvinkte (net door een ander = gemarkeerd).
  * Elke actie werkt via de relaties van deze lijst, dus nooit op id's van een andere lijst of ander huishouden.
  */
 class Show extends Component
@@ -65,22 +67,25 @@ class Show extends Component
         $category->delete();
     }
 
+    /** Snel toevoegen: "melk, brood, kaas" geeft drie items. */
     public function addItem(int $categoryId): void
     {
-        $text = trim($this->newItemText);
+        $titles = QuickAdd::split($this->newItemText);
 
-        if ($text === '') {
+        if ($titles === []) {
             return;
         }
 
         $category = $this->list->categories()->findOrFail($categoryId);
         $this->authorize('update', $category);
 
-        $this->list->tasks()->create([
-            'list_category_id' => $category->id,
-            'title' => mb_substr($text, 0, 255),
-            'created_by' => auth()->id(),
-        ]);
+        foreach ($titles as $title) {
+            $this->list->tasks()->create([
+                'list_category_id' => $category->id,
+                'title' => $title,
+                'created_by' => auth()->id(),
+            ]);
+        }
 
         $this->reset('newItemText', 'activeCategory');
     }
@@ -91,7 +96,9 @@ class Show extends Component
         $task = $this->list->tasks()->findOrFail($taskId);
         $this->authorize('update', $task);
 
-        $task->update(['completed_at' => $task->isCompleted() ? null : now()]);
+        $task->update($task->isCompleted()
+            ? ['completed_at' => null, 'completed_by' => null]
+            : ['completed_at' => now(), 'completed_by' => auth()->id()]);
     }
 
     public function deleteItem(int $taskId): void
@@ -105,7 +112,7 @@ class Show extends Component
     public function render(): View
     {
         $categories = $this->list->categories()
-            ->with(['tasks' => fn ($query) => $query->oldest()->orderBy('id')])
+            ->with(['tasks' => fn ($query) => $query->with('completer')->oldest()->orderBy('id')])
             ->oldest()
             ->orderBy('id')
             ->get();

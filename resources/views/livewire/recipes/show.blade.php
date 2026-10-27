@@ -76,16 +76,36 @@
 
     <div class="grid items-start gap-4 lg:grid-cols-2">
         <x-card>
-            <h3 class="mb-3 text-base font-bold">Boodschappenlijstje</h3>
+            <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <h3 class="text-base font-bold">Boodschappenlijstje</h3>
+                @if ($recipe->servings)
+                    {{-- porties omrekenen --}}
+                    <div class="flex items-center gap-1 rounded-full bg-secondary p-1" role="group" aria-label="Aantal personen">
+                        <button type="button" wire:click="fewerPeople" @disabled($people <= 1) aria-label="Minder personen"
+                            class="flex size-8 items-center justify-center rounded-full bg-card font-bold shadow-card disabled:opacity-40">−</button>
+                        <span class="min-w-24 text-center text-sm font-semibold tabular-nums" aria-live="polite">
+                            {{ $people }} {{ $people === 1 ? 'persoon' : 'personen' }}
+                        </span>
+                        <button type="button" wire:click="morePeople" @disabled($people >= 50) aria-label="Meer personen"
+                            class="flex size-8 items-center justify-center rounded-full bg-card font-bold shadow-card disabled:opacity-40">+</button>
+                    </div>
+                @endif
+            </div>
+            @if ($recipe->servings && $people !== $recipe->servings)
+                <p class="-mt-1 mb-3 text-xs text-muted-foreground">
+                    Omgerekend van {{ $recipe->servings }} naar {{ $people }} {{ $people === 1 ? 'persoon' : 'personen' }}.
+                    <button type="button" wire:click="$set('people', {{ $recipe->servings }})" class="font-semibold text-link hover:underline">Terug naar origineel</button>
+                </p>
+            @endif
             <div class="flex flex-col gap-2">
                 @forelse ($ingredients as $ingredient)
                     <div wire:key="ingredient-{{ $ingredient->id }}" class="flex items-center gap-2.5 rounded-xl border border-item-border bg-item px-3 py-2.5">
                         @if ($isMember)
                             <x-check :done="$ingredient->is_checked" wire:click="toggleItem({{ $ingredient->id }})" />
-                            <span @class(['flex-1 break-words text-[15px]', 'text-muted-foreground line-through' => $ingredient->is_checked])>{{ $ingredient->text }}</span>
+                            <span @class(['flex-1 break-words text-[15px]', 'text-muted-foreground line-through' => $ingredient->is_checked])>{{ $ingredient->display }}</span>
                         @else
                             <span class="size-2 shrink-0 rounded-full bg-primary"></span>
-                            <span class="flex-1 break-words text-[15px]">{{ $ingredient->text }}</span>
+                            <span class="flex-1 break-words text-[15px]">{{ $ingredient->display }}</span>
                         @endif
                     </div>
                 @empty
