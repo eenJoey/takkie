@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Actions\CompleteTask;
 use App\Enums\ListType;
 use App\Exceptions\TaskException;
+use App\Models\MealPlanEntry;
 use App\Models\Task;
 use App\Models\TodoList;
 use App\Support\CurrentHousehold;
@@ -87,6 +88,12 @@ class Today extends Component
             -1 => 'Gisteren',
             default => $this->shown->locale('nl')->translatedFormat('l j F'),
         };
+    }
+
+    /** Wat er op het weekmenu staat voor de getoonde dag. */
+    public function meal(): ?MealPlanEntry
+    {
+        return MealPlanEntry::with('recipe')->whereDate('date', $this->shown->toDateString())->first();
     }
 
     /** 🔥 dagen op rij een taak gedaan (zie App\Support\Streak). */

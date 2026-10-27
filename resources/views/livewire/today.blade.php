@@ -54,6 +54,17 @@
             </button>
         </div>
 
+        @php $meal = $this->meal(); @endphp
+        <a href="{{ $meal?->recipe ? route('recipes.show', $meal->recipe->slug) : route('weekmenu') }}" wire:navigate
+            class="mb-3 flex items-center gap-3 rounded-2xl bg-card p-4 shadow-card transition hover:shadow-soft">
+            <span class="text-2xl" aria-hidden="true">🍽️</span>
+            <span class="min-w-0 flex-1">
+                <span class="block text-xs font-semibold text-muted-foreground">Eten</span>
+                <span class="block truncate font-bold">{{ $meal?->recipe?->title ?? $meal?->title ?? 'Nog niets gepland' }}</span>
+            </span>
+            <x-icon name="arrow-right" class="text-muted-foreground" />
+        </a>
+
         @if ($this->tasks->isEmpty())
             <x-empty-state emoji="✨" title="Niks te doen" description="Geniet ervan, of voeg een nieuwe taak toe." />
         @else
