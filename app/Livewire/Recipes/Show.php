@@ -7,6 +7,7 @@ use App\Actions\SyncRecipeCopy;
 use App\Models\Recipe;
 use App\Models\Scopes\HouseholdScope;
 use App\Support\CurrentHousehold;
+use App\Support\IngredientScaler;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -23,6 +24,9 @@ class Show extends Component
     #[Locked]
     public int $recipeId;
 
+    /** Porties omrekenen: voor hoeveel personen je kookt (alleen weergave; het recept zelf blijft gelijk). */
+    public ?int $people = null;
+
     public function mount(string $slug): void
     {
         $recipe = Recipe::withoutGlobalScope(HouseholdScope::class)->where('slug', $slug)->first();
@@ -31,11 +35,22 @@ class Show extends Component
         abort_unless($recipe && Gate::allows('view', $recipe), 404);
 
         $this->recipeId = $recipe->id;
+        $this->people = $recipe->servings;
     }
 
     private function recipe(): Recipe
     {
         return Recipe::withoutGlobalScope(HouseholdScope::class)->findOrFail($this->recipeId);
+    }
+
+    public function morePeople(): void
+    {
+        $this->people = min(50, ($this->people ?? 1) + 1);
+    }
+
+    public function fewerPeople(): void
+    {
+        $this->people = max(1, ($this->people ?? 1) - 1);
     }
 
     public function isMember(): bool
@@ -119,9 +134,14 @@ class Show extends Component
         // leden zien het recept binnen hun eigen huishouden (de scope moet dan het juiste huishouden hebben)
         $useAppLayout = $isMember && app(CurrentHousehold::class)->id() === $recipe->household_id;
 
+        $people = $this->people && $this->people >= 1 && $this->people <= 50 ? $this->people : $recipe->servings;
+        $factor = $recipe->servings && $people ? $people / $recipe->servings : 1;
+
         return view('livewire.recipes.show', [
             'recipe' => $recipe,
-            'ingredients' => $recipe->ingredients()->withoutGlobalScope(HouseholdScope::class)->get(),
+            'people' => $people,
+            'ingredients' => $recipe->ingredients()->withoutGlobalScope(HouseholdScope::class)->get()
+                ->each(fn ($ingredient) => $ingredient->display = IngredientScaler::scale($ingredient->text, $factor)),
             'tags' => $recipe->tags()->withoutGlobalScope(HouseholdScope::class)->get(),
             'isMember' => $isMember,
             // toevoegen kan alleen ingelogd, met een huishouden, aan een openbaar recept van een ander huishouden

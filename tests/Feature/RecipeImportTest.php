@@ -55,6 +55,7 @@ class RecipeImportTest extends TestCase
                     ['@type' => 'HowToStep', 'text' => 'Kook de <b>pasta</b>.'],
                     ['@type' => 'HowToSection', 'name' => 'Saus', 'itemListElement' => [['@type' => 'HowToStep', 'text' => 'Meng de pesto.']]],
                 ],
+                'recipeYield' => ['4', '4 personen'],
                 'keywords' => 'pasta, snel',
                 'recipeCuisine' => ['Italiaans'],
             ],
@@ -64,6 +65,7 @@ class RecipeImportTest extends TestCase
             ->set('importUrl', 'https://voorbeeld.test/recept/pasta')
             ->call('importFromUrl')
             ->assertSet('title', 'Pasta & pesto')
+            ->assertSet('servings', 4)
             ->assertSet('items', ['200 g pasta', '1 ui, gesnipperd'])
             ->assertSet('tags', 'pasta, snel, Italiaans')
             ->assertSet('instructions', "Kook de pasta.\nSaus\nMeng de pesto.\n\nBron: https://voorbeeld.test/recept/pasta")
@@ -132,5 +134,15 @@ class RecipeImportTest extends TestCase
         $this->assertSame("Burrito's met gehakt", $recipe['title']);
         $this->assertSame(['300 g gehakt', '8 wraps'], $recipe['ingredients']);
         $this->assertSame('Bak het gehakt.', $recipe['instructions']);
+    }
+
+    public function test_sites_that_block_apps_get_a_clear_message(): void
+    {
+        Http::fake(['*' => Http::response('Access Denied', 403)]);
+
+        Livewire::test(Form::class)
+            ->set('importUrl', 'https://voorbeeld.test/allerhande/recept/x')
+            ->call('importFromUrl')
+            ->assertDispatched('toast', type: 'error', message: 'Deze website blokkeert het ophalen door apps. Neem het recept over met kopiëren en plakken.');
     }
 }

@@ -36,6 +36,13 @@
                 </div>
 
                 <div>
+                    <x-label for="servings">Aantal personen</x-label>
+                    <x-input id="servings" type="number" inputmode="numeric" min="1" max="50" wire:model="servings" placeholder="bijv. 4" class="max-w-32" />
+                    @error('servings') <p class="mt-1 text-sm text-destructive">{{ $message }}</p> @enderror
+                    <p class="mt-1 text-xs text-muted-foreground">Voor hoeveel personen de hoeveelheden zijn. Dan kun je het recept omrekenen.</p>
+                </div>
+
+                <div>
                     <x-label for="items">Boodschappenlijstje</x-label>
                     <div class="flex gap-2">
                         <x-input id="items" wire:model="newItemText" wire:keydown.enter.prevent="addItem" placeholder="Voeg een item toe..." maxlength="255" />

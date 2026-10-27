@@ -36,6 +36,7 @@ class CopyPublicRecipe
                 'source_recipe_id' => $source->id,
                 'title' => $source->title,
                 'instructions' => $source->instructions,
+                'servings' => $source->servings,
                 'visibility' => RecipeVisibility::Private,
                 'copied_at' => now(),
                 'source_synced_at' => $source->content_changed_at,

@@ -29,6 +29,9 @@ class Form extends Component
 
     public string $instructions = '';
 
+    /** Aantal personen; leeg laten mag (dan geen porties omrekenen). */
+    public int|string|null $servings = null;
+
     public string $newItemText = '';
 
     /** @var list<string> */
@@ -48,6 +51,7 @@ class Form extends Component
             $this->recipeId = $recipe->id;
             $this->title = $recipe->title;
             $this->instructions = (string) $recipe->instructions;
+            $this->servings = $recipe->servings;
             $this->items = $recipe->ingredients->pluck('text')->all();
             $this->tags = $recipe->tags->pluck('name')->implode(', ');
             $this->isPublic = $recipe->isPublic();
@@ -80,6 +84,7 @@ class Form extends Component
         }
 
         $this->title = $recipe['title'] ?: $this->title;
+        $this->servings = $recipe['servings'] ?? $this->servings;
         $this->items = $recipe['ingredients'];
         $this->tags = implode(', ', $recipe['tags']);
         $this->instructions = trim($recipe['instructions']."\n\nBron: ".mb_substr($url, 0, 500));
@@ -112,10 +117,11 @@ class Form extends Component
         $this->validate([
             'title' => ['required', 'string', 'max:255'],
             'instructions' => ['nullable', 'string', 'max:20000'],
+            'servings' => ['nullable', 'integer', 'min:1', 'max:50'],
             'items' => ['array', 'max:200'],
             'items.*' => ['string', 'max:255'],
             'tags' => ['nullable', 'string', 'max:500'],
-        ], [], ['title' => 'naam', 'instructions' => 'instructies']);
+        ], [], ['title' => 'naam', 'instructions' => 'instructies', 'servings' => 'aantal personen']);
 
         $changed = false;
 
@@ -130,6 +136,7 @@ class Form extends Component
 
             $recipe->title = trim($this->title);
             $recipe->instructions = trim($this->instructions) ?: null;
+            $recipe->servings = filled($this->servings) ? (int) $this->servings : null;
             $recipe->setVisibility($this->isPublic ? RecipeVisibility::Public : RecipeVisibility::Private);
             $recipe->save();
 
@@ -160,6 +167,7 @@ class Form extends Component
         return [
             $recipe->title,
             $recipe->instructions,
+            $recipe->servings,
             $recipe->ingredients()->pluck('text')->all(),
             $recipe->tags()->pluck('name')->all(),
         ];

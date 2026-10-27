@@ -23,6 +23,7 @@ class SyncRecipeCopy
             $copy->update([
                 'title' => $source->title,
                 'instructions' => $source->instructions,
+                'servings' => $source->servings,
                 'source_synced_at' => $source->content_changed_at,
             ]);
 
