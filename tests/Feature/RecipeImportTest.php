@@ -6,6 +6,7 @@ use App\Actions\CreateHousehold;
 use App\Exceptions\RecipeImportException;
 use App\Livewire\Recipes\Form;
 use App\Models\User;
+use App\Support\NaarTakkie;
 use App\Support\RecipeImporter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
@@ -144,5 +145,50 @@ class RecipeImportTest extends TestCase
             ->set('importUrl', 'https://voorbeeld.test/allerhande/recept/x')
             ->call('importFromUrl')
             ->assertDispatched('toast', type: 'error', message: 'Deze website blokkeert het ophalen door apps. Neem het recept over met kopiëren en plakken.');
+    }
+
+    public function test_naar_takkie_fills_the_form_from_the_users_browser(): void
+    {
+        Http::fake();
+
+        // zoals het script het op ah.nl uitleest
+        Livewire::test(Form::class)
+            ->call('importFromSchema', [
+                'name' => 'Broodje pittige kip',
+                'recipeYield' => '4',
+                'recipeIngredient' => ['60 g peen julienne', '60 g taugé'],
+                'recipeInstructions' => [['@type' => 'HowToStep', 'name' => 'stap 1', 'text' => 'Doe de peen in een kom.']],
+                'keywords' => ['Lunch'],
+            ], 'https://www.ah.nl/allerhande/recept/R-R1195921/broodje-hete-kip')
+            ->assertSet('title', 'Broodje pittige kip')
+            ->assertSet('servings', 4)
+            ->assertSet('items', ['60 g peen julienne', '60 g taugé'])
+            ->assertSet('tags', 'Lunch')
+            ->assertSet('instructions', "Doe de peen in een kom.\n\nBron: https://www.ah.nl/allerhande/recept/R-R1195921/broodje-hete-kip");
+
+        // Takkie haalt zelf niets op
+        Http::assertNothingSent();
+
+        // rommel of geen recept: nette melding, geen fout
+        Livewire::test(Form::class)
+            ->call('importFromSchema', 'geen recept', 'javascript:alert(1)')
+            ->assertDispatched('toast', type: 'error', message: 'Geen recept gevonden op deze pagina');
+        Livewire::test(Form::class)
+            ->call('importFromSchema', ['name' => ['raar'], 'recipeIngredient' => [['x' => 1], 'ui']], 'javascript:alert(1)')
+            ->assertSet('items', ['ui'])
+            ->assertSet('instructions', '');
+    }
+
+    public function test_naar_takkie_page_shows_bookmarklet_and_shortcut_code(): void
+    {
+        $this->get(route('recipes.send-to-takkie'))
+            ->assertOk()
+            ->assertSee('Naar Takkie')
+            ->assertSee('javascript:', false)
+            ->assertSee('Opdracht-code kopiëren');
+
+        $this->assertStringStartsWith('javascript:', NaarTakkie::bookmarklet());
+        $this->assertStringContainsString(json_encode(route('recipes.create'), JSON_UNESCAPED_SLASHES), NaarTakkie::shortcutScript());
+        $this->assertStringEndsWith('completion(u);})()', NaarTakkie::shortcutScript());
     }
 }

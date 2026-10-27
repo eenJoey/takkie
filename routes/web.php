@@ -48,6 +48,7 @@ Route::middleware(['auth', 'household'])->group(function () {
     Route::get('/recipes', Recipes\Index::class)->name('recipes.index');
     Route::get('/weekmenu', Recipes\WeekMenu::class)->name('weekmenu');
     Route::get('/recipes/create', Recipes\Form::class)->name('recipes.create');
+    Route::get('/recipes/naar-takkie', Recipes\SendToTakkie::class)->name('recipes.send-to-takkie');
     Route::get('/recipes/{recipe:slug}/edit', Recipes\Form::class)->name('recipes.edit');
     Route::get('/household', Household\Index::class)->name('household');
     Route::get('/profiel', Profile\Index::class)->name('profile');

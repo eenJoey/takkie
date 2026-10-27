@@ -30,6 +30,17 @@ class RecipeImporter
             throw new RecipeImportException('Geen recept gevonden op deze pagina');
         }
 
+        return $this->fromSchema($recipe);
+    }
+
+    /**
+     * Een schema.org Recipe (als array) omzetten naar de velden van het formulier.
+     * Ook gebruikt door "Naar Takkie" (bladwijzer/Opdracht): dan leest de browser van de gebruiker het recept uit de pagina.
+     *
+     * @return array{title: string, servings: ?int, instructions: string, ingredients: list<string>, tags: list<string>}
+     */
+    public function fromSchema(array $recipe): array
+    {
         return [
             'title' => mb_substr($this->clean($recipe['name'] ?? ''), 0, 255),
             'servings' => $this->servings($recipe['recipeYield'] ?? null),
@@ -247,6 +258,11 @@ class RecipeImporter
 
     private function clean(mixed $text): string
     {
+        // gegevens uit de browser (Naar Takkie) kunnen van alles bevatten
+        if (! is_scalar($text)) {
+            return '';
+        }
+
         $text = html_entity_decode(strip_tags((string) $text), ENT_QUOTES | ENT_HTML5, 'UTF-8');
 
         return trim(preg_replace('/\s+/u', ' ', $text));

@@ -83,12 +83,33 @@ class Form extends Component
             return;
         }
 
+        $this->fillFromImport($recipe, $url);
+        $this->reset('importUrl');
+    }
+
+    /**
+     * "Naar Takkie" (bladwijzer of iPhone-Opdracht): de browser van de gebruiker las het recept uit de pagina
+     * en geeft de schema.org Recipe mee. Takkie haalt zelf niets op; het formulier wordt alleen ingevuld.
+     */
+    public function importFromSchema(mixed $recipe, mixed $url = null): void
+    {
+        if (! is_array($recipe) || ! isset($recipe['name'])) {
+            $this->dispatch('toast', type: 'error', message: 'Geen recept gevonden op deze pagina');
+
+            return;
+        }
+
+        $url = is_string($url) && preg_match('#^https?://#i', $url) ? $url : null;
+        $this->fillFromImport(app(RecipeImporter::class)->fromSchema($recipe), $url);
+    }
+
+    private function fillFromImport(array $recipe, ?string $url): void
+    {
         $this->title = $recipe['title'] ?: $this->title;
         $this->servings = $recipe['servings'] ?? $this->servings;
         $this->items = $recipe['ingredients'];
         $this->tags = implode(', ', $recipe['tags']);
-        $this->instructions = trim($recipe['instructions']."\n\nBron: ".mb_substr($url, 0, 500));
-        $this->reset('importUrl');
+        $this->instructions = trim($recipe['instructions'].($url ? "\n\nBron: ".mb_substr($url, 0, 500) : ''));
 
         $this->dispatch('toast', type: 'success', message: 'Recept opgehaald. Controleer het en sla op.');
     }
