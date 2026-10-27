@@ -8,6 +8,38 @@
         </x-slot:actions>
     </x-page-header>
 
+    @unless ($recipe)
+        {{-- "Naar Takkie": recept uit de browser van de gebruiker zit in het fragment #import=… (komt nooit bij de server langs de URL) --}}
+        <div x-data x-init="
+            if (location.hash.startsWith('#import=')) {
+                let data = null;
+                try { data = JSON.parse(decodeURIComponent(location.hash.slice(8))) } catch (e) {}
+                history.replaceState(null, '', location.pathname);
+                if (data && data.recipe) { $wire.importFromSchema(data.recipe, data.url) }
+                else { $dispatch('toast', { type: 'error', message: 'Geen recept gevonden op deze pagina' }) }
+            }
+        "></div>
+
+        {{-- recept uit een link: vult het formulier hieronder --}}
+        <x-card class="mb-4">
+            <form wire:submit="importFromUrl" class="space-y-2">
+                <x-label for="import-url">Recept uit een link</x-label>
+                <div class="flex gap-2">
+                    <x-input id="import-url" type="url" wire:model="importUrl" placeholder="https://www.ah.nl/allerhande/recept/…" maxlength="2000" />
+                    <x-button type="submit" class="shrink-0" wire:loading.attr="disabled" wire:target="importFromUrl">
+                        <x-icon name="link" />
+                        <span wire:loading.remove wire:target="importFromUrl">Ophalen</span>
+                        <span wire:loading wire:target="importFromUrl">Bezig…</span>
+                    </x-button>
+                </div>
+                <p class="text-xs text-muted-foreground">
+                    Werkt op de meeste receptensites. Blokkeert een site dat (zoals AH)?
+                    <a href="{{ route('recipes.send-to-takkie') }}" wire:navigate class="font-semibold text-link hover:underline">Gebruik Naar Takkie</a>.
+                </p>
+            </form>
+        </x-card>
+    @endunless
+
     <form wire:submit="save">
         <div class="grid gap-4 lg:grid-cols-2">
             <x-card class="space-y-4">
@@ -15,6 +47,13 @@
                     <x-label for="title">Naam</x-label>
                     <x-input id="title" wire:model="title" required maxlength="255" />
                     @error('title') <p class="mt-1 text-sm text-destructive">{{ $message }}</p> @enderror
+                </div>
+
+                <div>
+                    <x-label for="servings">Aantal personen</x-label>
+                    <x-input id="servings" type="number" inputmode="numeric" min="1" max="50" wire:model="servings" placeholder="bijv. 4" class="max-w-32" />
+                    @error('servings') <p class="mt-1 text-sm text-destructive">{{ $message }}</p> @enderror
+                    <p class="mt-1 text-xs text-muted-foreground">Voor hoeveel personen de hoeveelheden zijn. Dan kun je het recept omrekenen.</p>
                 </div>
 
                 <div>

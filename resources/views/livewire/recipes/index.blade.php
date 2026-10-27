@@ -1,6 +1,10 @@
 <div>
     <x-page-header title="Receptenboek" subtitle="Kies een recept of maak een nieuwe.">
         <x-slot:actions>
+            <x-button variant="secondary" size="sm" :href="route('weekmenu')" wire:navigate>
+                <x-icon name="calendar" />
+                Weekmenu
+            </x-button>
             <x-button variant="secondary" size="sm" :href="route('recipes.discover')" wire:navigate>Ontdekken</x-button>
             <x-button size="sm" :href="route('recipes.create')" wire:navigate>
                 <x-icon name="plus" />

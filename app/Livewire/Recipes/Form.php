@@ -4,8 +4,11 @@ namespace App\Livewire\Recipes;
 
 use App\Actions\NotifyRecipeCopies;
 use App\Enums\RecipeVisibility;
+use App\Exceptions\RecipeImportException;
 use App\Models\Recipe;
+use App\Support\RecipeImporter;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Livewire\Attributes\Locked;
@@ -26,6 +29,9 @@ class Form extends Component
 
     public string $instructions = '';
 
+    /** Aantal personen; leeg laten mag (dan geen porties omrekenen). */
+    public int|string|null $servings = null;
+
     public string $newItemText = '';
 
     /** @var list<string> */
@@ -35,6 +41,8 @@ class Form extends Component
 
     public bool $isPublic = false;
 
+    public string $importUrl = '';
+
     public function mount(?Recipe $recipe = null): void
     {
         if ($recipe?->exists) {
@@ -43,10 +51,67 @@ class Form extends Component
             $this->recipeId = $recipe->id;
             $this->title = $recipe->title;
             $this->instructions = (string) $recipe->instructions;
+            $this->servings = $recipe->servings;
             $this->items = $recipe->ingredients->pluck('text')->all();
             $this->tags = $recipe->tags->pluck('name')->implode(', ');
             $this->isPublic = $recipe->isPublic();
         }
+    }
+
+    /** Recept uit een link: vult het formulier, opslaan doet de gebruiker zelf (na controleren). */
+    public function importFromUrl(RecipeImporter $importer): void
+    {
+        $url = trim($this->importUrl);
+
+        if ($url === '') {
+            return;
+        }
+
+        if (RateLimiter::tooManyAttempts('recipe-import:'.auth()->id(), 10)) {
+            $this->dispatch('toast', type: 'error', message: 'Even wachten, probeer het zo opnieuw');
+
+            return;
+        }
+
+        RateLimiter::hit('recipe-import:'.auth()->id(), 60);
+
+        try {
+            $recipe = $importer->import($url);
+        } catch (RecipeImportException $e) {
+            $this->dispatch('toast', type: 'error', message: $e->getMessage());
+
+            return;
+        }
+
+        $this->fillFromImport($recipe, $url);
+        $this->reset('importUrl');
+    }
+
+    /**
+     * "Naar Takkie" (bladwijzer of iPhone-Opdracht): de browser van de gebruiker las het recept uit de pagina
+     * en geeft de schema.org Recipe mee. Takkie haalt zelf niets op; het formulier wordt alleen ingevuld.
+     */
+    public function importFromSchema(mixed $recipe, mixed $url = null): void
+    {
+        if (! is_array($recipe) || ! isset($recipe['name'])) {
+            $this->dispatch('toast', type: 'error', message: 'Geen recept gevonden op deze pagina');
+
+            return;
+        }
+
+        $url = is_string($url) && preg_match('#^https?://#i', $url) ? $url : null;
+        $this->fillFromImport(app(RecipeImporter::class)->fromSchema($recipe), $url);
+    }
+
+    private function fillFromImport(array $recipe, ?string $url): void
+    {
+        $this->title = $recipe['title'] ?: $this->title;
+        $this->servings = $recipe['servings'] ?? $this->servings;
+        $this->items = $recipe['ingredients'];
+        $this->tags = implode(', ', $recipe['tags']);
+        $this->instructions = trim($recipe['instructions'].($url ? "\n\nBron: ".mb_substr($url, 0, 500) : ''));
+
+        $this->dispatch('toast', type: 'success', message: 'Recept opgehaald. Controleer het en sla op.');
     }
 
     public function addItem(): void
@@ -73,10 +138,11 @@ class Form extends Component
         $this->validate([
             'title' => ['required', 'string', 'max:255'],
             'instructions' => ['nullable', 'string', 'max:20000'],
+            'servings' => ['nullable', 'integer', 'min:1', 'max:50'],
             'items' => ['array', 'max:200'],
             'items.*' => ['string', 'max:255'],
             'tags' => ['nullable', 'string', 'max:500'],
-        ], [], ['title' => 'naam', 'instructions' => 'instructies']);
+        ], [], ['title' => 'naam', 'instructions' => 'instructies', 'servings' => 'aantal personen']);
 
         $changed = false;
 
@@ -91,6 +157,7 @@ class Form extends Component
 
             $recipe->title = trim($this->title);
             $recipe->instructions = trim($this->instructions) ?: null;
+            $recipe->servings = filled($this->servings) ? (int) $this->servings : null;
             $recipe->setVisibility($this->isPublic ? RecipeVisibility::Public : RecipeVisibility::Private);
             $recipe->save();
 
@@ -121,6 +188,7 @@ class Form extends Component
         return [
             $recipe->title,
             $recipe->instructions,
+            $recipe->servings,
             $recipe->ingredients()->pluck('text')->all(),
             $recipe->tags()->pluck('name')->all(),
         ];

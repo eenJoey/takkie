@@ -13,7 +13,7 @@ use Illuminate\Support\Carbon;
 
 #[Fillable([
     'household_id', 'list_id', 'list_category_id', 'title', 'description', 'points',
-    'recurrence_type', 'recurrence_interval', 'due_date', 'assigned_to', 'created_by', 'completed_at',
+    'recurrence_type', 'recurrence_interval', 'due_date', 'assigned_to', 'created_by', 'completed_at', 'completed_by',
 ])]
 class Task extends Model
 {
@@ -43,6 +43,12 @@ class Task extends Model
     public function assignee(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_to');
+    }
+
+    /** Checklist: wie het item afvinkte. */
+    public function completer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'completed_by');
     }
 
     public function completions(): HasMany
