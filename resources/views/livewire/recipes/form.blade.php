@@ -8,6 +8,24 @@
         </x-slot:actions>
     </x-page-header>
 
+    @unless ($recipe)
+        {{-- recept uit een link: vult het formulier hieronder --}}
+        <x-card class="mb-4">
+            <form wire:submit="importFromUrl" class="space-y-2">
+                <x-label for="import-url">Recept uit een link</x-label>
+                <div class="flex gap-2">
+                    <x-input id="import-url" type="url" wire:model="importUrl" placeholder="https://www.ah.nl/allerhande/recept/…" maxlength="2000" />
+                    <x-button type="submit" class="shrink-0" wire:loading.attr="disabled" wire:target="importFromUrl">
+                        <x-icon name="link" />
+                        <span wire:loading.remove wire:target="importFromUrl">Ophalen</span>
+                        <span wire:loading wire:target="importFromUrl">Bezig…</span>
+                    </x-button>
+                </div>
+                <p class="text-xs text-muted-foreground">Werkt op de meeste receptensites. Je kunt alles daarna nog aanpassen.</p>
+            </form>
+        </x-card>
+    @endunless
+
     <form wire:submit="save">
         <div class="grid gap-4 lg:grid-cols-2">
             <x-card class="space-y-4">

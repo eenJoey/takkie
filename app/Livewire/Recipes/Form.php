@@ -4,8 +4,11 @@ namespace App\Livewire\Recipes;
 
 use App\Actions\NotifyRecipeCopies;
 use App\Enums\RecipeVisibility;
+use App\Exceptions\RecipeImportException;
 use App\Models\Recipe;
+use App\Support\RecipeImporter;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Livewire\Attributes\Locked;
@@ -35,6 +38,8 @@ class Form extends Component
 
     public bool $isPublic = false;
 
+    public string $importUrl = '';
+
     public function mount(?Recipe $recipe = null): void
     {
         if ($recipe?->exists) {
@@ -47,6 +52,40 @@ class Form extends Component
             $this->tags = $recipe->tags->pluck('name')->implode(', ');
             $this->isPublic = $recipe->isPublic();
         }
+    }
+
+    /** Recept uit een link: vult het formulier, opslaan doet de gebruiker zelf (na controleren). */
+    public function importFromUrl(RecipeImporter $importer): void
+    {
+        $url = trim($this->importUrl);
+
+        if ($url === '') {
+            return;
+        }
+
+        if (RateLimiter::tooManyAttempts('recipe-import:'.auth()->id(), 10)) {
+            $this->dispatch('toast', type: 'error', message: 'Even wachten, probeer het zo opnieuw');
+
+            return;
+        }
+
+        RateLimiter::hit('recipe-import:'.auth()->id(), 60);
+
+        try {
+            $recipe = $importer->import($url);
+        } catch (RecipeImportException $e) {
+            $this->dispatch('toast', type: 'error', message: $e->getMessage());
+
+            return;
+        }
+
+        $this->title = $recipe['title'] ?: $this->title;
+        $this->items = $recipe['ingredients'];
+        $this->tags = implode(', ', $recipe['tags']);
+        $this->instructions = trim($recipe['instructions']."\n\nBron: ".mb_substr($url, 0, 500));
+        $this->reset('importUrl');
+
+        $this->dispatch('toast', type: 'success', message: 'Recept opgehaald. Controleer het en sla op.');
     }
 
     public function addItem(): void
