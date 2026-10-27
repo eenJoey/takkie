@@ -154,6 +154,33 @@ class RecipeImporter
             }
         }
 
+        return $this->findRecipeInNextFlight($html);
+    }
+
+    /**
+     * Next.js-sites (bijv. Picnic) zetten de JSON-LD niet als <script> in de HTML maar in de "flight"-data:
+     * self.__next_f.push([1,"…"]) met daarin tekstblokken als `25:T72d,{json}` (lengte in bytes, hexadecimaal).
+     */
+    private function findRecipeInNextFlight(string $html): ?array
+    {
+        // possessief (++ / *+): anders loopt PCRE vast op de lange stukken (JIT stack limit)
+        if (! preg_match_all('#self\.__next_f\.push\(\[1,("(?:[^"\\\\]++|\\\\.)*+")\]\)#s', $html, $matches)) {
+            return null;
+        }
+
+        $flight = implode('', array_map(fn (string $chunk) => (string) json_decode($chunk), $matches[1]));
+
+        preg_match_all('/(?:^|\n)[0-9a-f]+:T([0-9a-f]+),/', $flight, $blocks, PREG_OFFSET_CAPTURE);
+
+        foreach ($blocks[1] as $index => [$length]) {
+            $start = $blocks[0][$index][1] + strlen($blocks[0][$index][0]);
+            $data = json_decode(substr($flight, $start, hexdec($length)), true);
+
+            if (is_array($data) && ($recipe = $this->searchRecipe($data))) {
+                return $recipe;
+            }
+        }
+
         return null;
     }
 
