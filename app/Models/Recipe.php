@@ -19,7 +19,7 @@ class Recipe extends Model
     use BelongsToHousehold;
 
     /** Paden onder /recipes die geen slug mogen zijn */
-    public const RESERVED_SLUGS = ['create', 'discover'];
+    public const RESERVED_SLUGS = ['create', 'discover', 'naar-takkie'];
 
     protected $attributes = [
         'visibility' => 'private',
