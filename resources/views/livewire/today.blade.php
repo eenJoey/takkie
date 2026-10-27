@@ -2,6 +2,12 @@
     <div>
         <p class="text-muted-foreground">{{ $this->greeting() }} 👋</p>
         <h1 class="text-3xl font-extrabold">Wat staat er op de planning?</h1>
+        @php $streak = $this->streak(); @endphp
+        @if ($streak > 0)
+            <p class="mt-2 inline-flex items-center gap-1.5 rounded-full bg-card px-3 py-1 text-sm font-semibold shadow-card">
+                🔥 {{ $streak }} {{ $streak === 1 ? 'dag' : 'dagen' }} op rij — hou vol!
+            </p>
+        @endif
     </div>
 
     @if ($this->tasksList)
