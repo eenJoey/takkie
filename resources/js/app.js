@@ -13,6 +13,23 @@ window.addEventListener('task-completed', () => {
     });
 });
 
+// Als app op het beginscherm (PWA): laat de server dat weten, dan blijf je daar ingelogd (zie KeepSignedIn)
+if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+    document.cookie = `takkie_pwa=1; max-age=${60 * 60 * 24 * 400}; path=/; samesite=lax${location.protocol === 'https:' ? '; secure' : ''}`;
+}
+
+// Sessie verlopen (419)? Niet de Engelse "page expired"-vraag, maar stil herladen: het onthoud-cookie logt je weer in
+document.addEventListener('livewire:init', () => {
+    window.Livewire.interceptRequest(({ onError }) => {
+        onError(({ response, preventDefault }) => {
+            if (response.status === 419) {
+                preventDefault();
+                window.location.reload();
+            }
+        });
+    });
+});
+
 // Alpine (meegeleverd door Livewire) componenten
 document.addEventListener('alpine:init', () => {
     window.Alpine.data('takkieNotifications', takkieNotifications);
