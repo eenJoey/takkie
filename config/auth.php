@@ -41,6 +41,8 @@ return [
         'web' => [
             'driver' => 'session',
             'provider' => 'users',
+            // "onthoud mij" na inloggen; App\Http\Middleware\KeepSignedIn schuift het daarna op
+            'remember' => 60 * 24 * 30,
         ],
     ],
 
