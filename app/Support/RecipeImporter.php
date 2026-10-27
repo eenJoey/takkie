@@ -20,7 +20,7 @@ class RecipeImporter
 
     private const MAX_BYTES = 3_000_000;
 
-    /** @return array{title: string, instructions: string, ingredients: list<string>, tags: list<string>} */
+    /** @return array{title: string, servings: ?int, instructions: string, ingredients: list<string>, tags: list<string>} */
     public function import(string $url): array
     {
         $html = $this->fetch(trim($url));
@@ -32,6 +32,7 @@ class RecipeImporter
 
         return [
             'title' => mb_substr($this->clean($recipe['name'] ?? ''), 0, 255),
+            'servings' => $this->servings($recipe['recipeYield'] ?? null),
             'instructions' => $this->instructions($recipe['recipeInstructions'] ?? ''),
             'ingredients' => collect($this->list($recipe['recipeIngredient'] ?? $recipe['ingredients'] ?? []))
                 ->map(fn ($item) => mb_substr($this->clean($item), 0, 255))
@@ -65,6 +66,10 @@ class RecipeImporter
                 $url = $this->absolute($response->header('Location'), $url);
 
                 continue;
+            }
+
+            if (in_array($response->status(), [401, 403, 429], true)) {
+                throw new RecipeImportException('Deze website blokkeert het ophalen door apps. Neem het recept over met kopiëren en plakken.');
             }
 
             if (! $response->successful()) {
@@ -221,6 +226,18 @@ class RecipeImporter
         $walk($value);
 
         return mb_substr(implode("\n", array_filter($lines)), 0, 19000);
+    }
+
+    /** recipeYield: "4", 4, "4 personen" of ["4", "4 servings"] → 4 (1–50), anders null. */
+    private function servings(mixed $value): ?int
+    {
+        foreach ((array) $value as $item) {
+            if (preg_match('/\d+/', (string) $item, $match) && (int) $match[0] >= 1 && (int) $match[0] <= 50) {
+                return (int) $match[0];
+            }
+        }
+
+        return null;
     }
 
     private function list(mixed $value): array

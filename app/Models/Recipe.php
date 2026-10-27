@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
 /** Recept van een huishouden; kan openbaar gemaakt worden (MIGRATIE-PLAN.md, sectie e). */
-#[Fillable(['household_id', 'created_by', 'source_recipe_id', 'title', 'slug', 'instructions', 'visibility', 'published_at', 'content_changed_at', 'copied_at', 'source_synced_at'])]
+#[Fillable(['household_id', 'created_by', 'source_recipe_id', 'title', 'slug', 'instructions', 'servings', 'visibility', 'published_at', 'content_changed_at', 'copied_at', 'source_synced_at'])]
 class Recipe extends Model
 {
     use BelongsToHousehold;
@@ -38,6 +38,7 @@ class Recipe extends Model
             'visibility' => RecipeVisibility::class,
             'published_at' => 'datetime',
             'content_changed_at' => 'datetime',
+            'servings' => 'integer',
             'copied_at' => 'datetime',
             'source_synced_at' => 'datetime',
         ];
