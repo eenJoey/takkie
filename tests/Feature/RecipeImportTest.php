@@ -118,4 +118,19 @@ class RecipeImportTest extends TestCase
             ->assertDispatched('toast', type: 'error', message: 'Geen recept gevonden op deze pagina')
             ->assertSet('title', '');
     }
+
+    public function test_reads_a_recipe_from_next_js_flight_data_like_picnic(): void
+    {
+        $json = json_encode(['@context' => 'https://schema.org', '@type' => 'Recipe', 'name' => "Burrito's met gehakt", 'recipeIngredient' => ['300 g gehakt', '8 wraps'], 'recipeInstructions' => [['@type' => 'HowToStep', 'text' => 'Bak het gehakt.']]]);
+        // groot stuk ervoor, zoals op een echte pagina (liep eerder vast op de PCRE JIT stack)
+        $flight = '0:'.str_repeat('["$","div",null,{"className":"x"}]', 20000)."\n25:T".dechex(strlen($json)).','.$json."\n26:[]";
+        $html = '<html><body><script>self.__next_f.push([1,'.json_encode($flight).'])</script></body></html>';
+        Http::fake(['*' => Http::response($html)]);
+
+        $recipe = app(RecipeImporter::class)->import('https://voorbeeld.test/nl/recepten/burritos');
+
+        $this->assertSame("Burrito's met gehakt", $recipe['title']);
+        $this->assertSame(['300 g gehakt', '8 wraps'], $recipe['ingredients']);
+        $this->assertSame('Bak het gehakt.', $recipe['instructions']);
+    }
 }
