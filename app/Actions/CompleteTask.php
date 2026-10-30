@@ -8,6 +8,9 @@ use App\Exceptions\TaskException;
 use App\Models\Task;
 use App\Models\TaskCompletion;
 use App\Models\User;
+use App\Models\XpEvent;
+use App\Support\Hero\Levels;
+use App\Support\Hero\XpGain;
 use App\Support\Today;
 use Illuminate\Support\Facades\DB;
 
@@ -16,10 +19,14 @@ use Illuminate\Support\Facades\DB;
  * - punten komen altijd van de taak, nooit van de client
  * - eenmalig: afgerond en vervaldatum leeg; herhalend: volgende datum = (oude datum of vandaag) + interval
  * - punten bij op het saldo van de afvinker in dit huishouden
+ * - heeft de taak een klasse: XP in die klasse (punten, minimaal 10), zie $xpGain
  * Niet terug te draaien, zoals in vinkie.
  */
 class CompleteTask
 {
+    /** XP van de laatste handle(), of null als de taak geen klasse heeft. */
+    public ?XpGain $xpGain = null;
+
     public function handle(User $user, Task $task): TaskCompletion
     {
         return DB::transaction(function () use ($user, $task) {
@@ -60,6 +67,13 @@ class CompleteTask
             DB::table('household_user')
                 ->where('id', $member->id)
                 ->increment('points_balance', $task->points);
+
+            $this->xpGain = $task->hero_class
+                ? app(AwardXp::class)->handle($user, $task->household_id, $task->hero_class, max(Levels::MIN_TASK_XP, $task->points), XpEvent::SOURCE_TASK, [
+                    'task_completion_id' => $completion->id,
+                    'label' => mb_substr($task->title, 0, 255),
+                ])
+                : null;
 
             return $completion;
         });
