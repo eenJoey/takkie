@@ -30,6 +30,12 @@ document.addEventListener('livewire:init', () => {
     });
 });
 
+// Level omhoog in "Mijn held": meer confetti, bij level 50 of prestige een flinke regen
+window.addEventListener('hero-level-up', (event) => {
+    const big = event.detail?.big;
+    confetti({ particleCount: big ? 250 : 140, spread: big ? 120 : 90, startVelocity: big ? 55 : 40, origin: { y: 0.6 }, scalar: 1 });
+});
+
 // Alpine (meegeleverd door Livewire) componenten
 document.addEventListener('alpine:init', () => {
     window.Alpine.data('takkieNotifications', takkieNotifications);

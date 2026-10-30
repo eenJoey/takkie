@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\AvatarController;
 use App\Livewire\Auth;
+use App\Livewire\Hero;
 use App\Livewire\Household;
 use App\Livewire\InviteShow;
 use App\Livewire\Lists;
@@ -52,6 +53,7 @@ Route::middleware(['auth', 'household'])->group(function () {
     Route::get('/recipes/{recipe:slug}/edit', Recipes\Form::class)->name('recipes.edit');
     Route::get('/household', Household\Index::class)->name('household');
     Route::get('/profiel', Profile\Index::class)->name('profile');
+    Route::get('/held', Hero\Index::class)->name('hero');
     Route::get('/avatars/{user}', [AvatarController::class, 'show'])->name('avatars.show');
 });
 

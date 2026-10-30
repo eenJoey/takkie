@@ -5,6 +5,7 @@ namespace App\Livewire\Profile;
 use App\Enums\StartPage;
 use App\Enums\Theme;
 use App\Support\CurrentHousehold;
+use App\Support\Hero\Hero;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
@@ -135,6 +136,7 @@ class Index extends Component
         return view('livewire.profile.index', [
             'user' => auth()->user(),
             'current' => app(CurrentHousehold::class)->get(),
+            'heroLevel' => Hero::for(auth()->user(), app(CurrentHousehold::class)->id())->level(),
         ]);
     }
 }
