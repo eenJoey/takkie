@@ -69,6 +69,16 @@ class User extends Authenticatable
         return $this->theme ?? Theme::TakkieLight;
     }
 
+    /**
+     * Google-accounts hebben geen wachtwoord (null). Laravel accepteert het onthoud-cookie alleen als dit een string is
+     * (SessionGuard::userFromRecaller), dus zonder deze '' werd je na het verlopen van de sessie toch uitgelogd.
+     * Inloggen met een wachtwoord blijft onmogelijk: geen enkel wachtwoord klopt met ''.
+     */
+    public function getAuthPassword(): string
+    {
+        return (string) $this->password;
+    }
+
     public function isMemberOf(Household|int|null $household): bool
     {
         $id = $household instanceof Household ? $household->id : $household;
