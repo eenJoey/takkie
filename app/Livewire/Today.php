@@ -134,7 +134,12 @@ class Today extends Component
         unset($this->tasks);
         $this->dispatch('task-completed');
         $this->dispatch('points-updated');
-        $this->dispatch('toast', type: 'success', message: "🎉 +{$completion->points_awarded} punten!");
+        $gain = $completeTask->xpGain;
+        $this->dispatch('toast', type: 'success', message: "🎉 +{$completion->points_awarded} punten!".($gain ? ' · '.$gain->toast() : ''));
+
+        if ($gain?->leveledUp()) {
+            $this->dispatch('hero-level-up', ...$gain->celebration());
+        }
     }
 
     public function render(): View

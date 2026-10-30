@@ -31,6 +31,7 @@
     <body class="min-h-screen">
         <x-splash />
         <x-toaster />
+        <x-hero-celebration />
 
         <div class="flex min-h-screen bg-screen">
             {{-- Desktop sidebar --}}
