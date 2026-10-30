@@ -16,6 +16,7 @@ use App\Models\TaskCompletion;
 use App\Models\TodoList;
 use App\Models\User;
 use App\Support\CurrentHousehold;
+use App\Support\Today as TodayDate;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -160,24 +161,54 @@ class TasksTest extends TestCase
         $this->assertSame(25, TaskCompletion::sole()->points_awarded);
     }
 
-    public function test_recurring_task_moves_to_next_date_from_its_old_date(): void
+    public function test_recurring_task_moves_to_its_next_date_in_the_schedule(): void
     {
-        $daily = $this->task(['recurrence_type' => RecurrenceType::Daily, 'recurrence_interval' => 2, 'due_date' => '2026-10-20']);
+        // vandaag is dinsdag 27 oktober
+        $daily = $this->task(['recurrence_type' => RecurrenceType::Daily, 'recurrence_interval' => 2, 'due_date' => '2026-10-27']);
         $weekly = $this->task(['recurrence_type' => RecurrenceType::Weekly, 'recurrence_interval' => 1]);
-        $monthly = $this->task(['recurrence_type' => RecurrenceType::Monthly, 'recurrence_interval' => 1, 'due_date' => '2026-01-31']);
+        $monthly = $this->task(['recurrence_type' => RecurrenceType::Monthly, 'recurrence_interval' => 1, 'due_date' => '2026-10-31']);
 
         $complete = app(CompleteTask::class);
         $complete->handle($this->user, $daily);
         $complete->handle($this->user, $weekly);
         $complete->handle($this->user, $monthly);
 
-        // zoals de vinkie-trigger: vanaf de oude datum, dus een achterstallige taak kan achterstallig blijven
-        $this->assertSame('2026-10-22', $daily->fresh()->due_date->toDateString());
+        $this->assertSame('2026-10-29', $daily->fresh()->due_date->toDateString());
         $this->assertSame('2026-11-03', $weekly->fresh()->due_date->toDateString());
-        // geen overloop: 31 januari + 1 maand = 28 februari
-        $this->assertSame('2026-02-28', $monthly->fresh()->due_date->toDateString());
+        // vroeg afgevinkt, en geen overloop: 31 oktober + 1 maand = 30 november
+        $this->assertSame('2026-11-30', $monthly->fresh()->due_date->toDateString());
         $this->assertNull($daily->fresh()->completed_at);
         $this->assertSame(30, $this->balance());
+    }
+
+    public function test_a_late_task_is_done_once_and_then_follows_its_schedule_again(): void
+    {
+        // elke 3 dagen vanaf 20 oktober: 20, 23, 26, 29 … — vandaag (27e) te laat afgevinkt
+        $everyThree = $this->task(['recurrence_type' => RecurrenceType::Daily, 'recurrence_interval' => 3, 'due_date' => '2026-10-20']);
+        // dagelijks, al een week te laat: morgen gewoon weer
+        $daily = $this->task(['recurrence_type' => RecurrenceType::Daily, 'recurrence_interval' => 1, 'due_date' => '2026-10-20']);
+        // wekelijks op maandag, vorige week gemist
+        $weekly = $this->task(['recurrence_type' => RecurrenceType::Weekly, 'recurrence_interval' => 1, 'due_date' => '2026-10-19']);
+        // maandelijks op de 31e sinds januari
+        $monthly = $this->task(['recurrence_type' => RecurrenceType::Monthly, 'recurrence_interval' => 1, 'due_date' => '2026-01-31']);
+
+        $this->assertTrue($everyThree->isOverdue(TodayDate::date()));
+
+        $complete = app(CompleteTask::class);
+        foreach ([$everyThree, $daily, $weekly, $monthly] as $task) {
+            $complete->handle($this->user, $task);
+        }
+
+        $this->assertSame('2026-10-29', $everyThree->fresh()->due_date->toDateString());
+        $this->assertSame('2026-10-28', $daily->fresh()->due_date->toDateString());
+        $this->assertSame('2026-11-02', $weekly->fresh()->due_date->toDateString());
+        $this->assertSame('2026-10-31', $monthly->fresh()->due_date->toDateString());
+
+        // nu nergens meer te laat, en maar één keer punten per taak
+        foreach ([$everyThree, $daily, $weekly, $monthly] as $task) {
+            $this->assertFalse($task->fresh()->isOverdue(TodayDate::date()));
+        }
+        $this->assertSame(40, $this->balance());
     }
 
     public function test_points_go_to_whoever_completes_the_task(): void
