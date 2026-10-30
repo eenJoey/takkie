@@ -77,6 +77,11 @@ class Board extends Component
         $this->dispatch('open-dialog', name: 'task-form');
     }
 
+    public function updatedFormTitle(): void
+    {
+        $this->form->suggestClass();
+    }
+
     public function save(): void
     {
         $data = $this->form->payload();
@@ -114,7 +119,12 @@ class Board extends Component
         unset($this->groups);
         $this->dispatch('task-completed');
         $this->dispatch('points-updated');
-        $this->dispatch('toast', type: 'success', message: "🎉 +{$completion->points_awarded} punten!");
+        $gain = $completeTask->xpGain;
+        $this->dispatch('toast', type: 'success', message: "🎉 +{$completion->points_awarded} punten!".($gain ? ' · '.$gain->toast() : ''));
+
+        if ($gain?->leveledUp()) {
+            $this->dispatch('hero-level-up', ...$gain->celebration());
+        }
     }
 
     public function delete(int $taskId): void

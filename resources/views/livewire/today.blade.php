@@ -92,6 +92,9 @@
                                 <p class="text-xs text-muted-foreground">Gepland (herhaling)</p>
                             @endif
                         </div>
+                        @if ($task->hero_class)
+                            <span class="text-lg" title="{{ $task->hero_class->label() }}" aria-label="Klasse {{ $task->hero_class->label() }}">{{ $task->hero_class->emoji() }}</span>
+                        @endif
                         <x-points :value="$task->points" size="md" />
                     </div>
                 @endforeach

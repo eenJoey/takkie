@@ -35,6 +35,15 @@
         </form>
     </section>
 
+    <a href="{{ route('hero') }}" wire:navigate class="group flex items-center gap-4 rounded-3xl bg-card p-6 shadow-card transition hover:ring-2 hover:ring-primary/30">
+        <span class="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-primary/15 text-2xl" aria-hidden="true">⚔️</span>
+        <span class="min-w-0 flex-1">
+            <span class="block font-bold">Mijn held</span>
+            <span class="block text-sm text-muted-foreground">Held-level {{ $heroLevel }} · levels, koken en prestige</span>
+        </span>
+        <x-icon name="chevron-right" class="size-5 text-muted-foreground transition group-hover:translate-x-0.5" />
+    </a>
+
     <section class="space-y-3 rounded-3xl bg-card p-6 shadow-card">
         <div>
             <h2 class="font-bold">Starttabblad</h2>

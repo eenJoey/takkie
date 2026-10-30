@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\HeroClass;
 use App\Enums\RecurrenceType;
 use App\Models\Concerns\BelongsToHousehold;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -12,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 #[Fillable([
-    'household_id', 'list_id', 'list_category_id', 'title', 'description', 'points',
+    'household_id', 'list_id', 'list_category_id', 'title', 'description', 'points', 'hero_class',
     'recurrence_type', 'recurrence_interval', 'due_date', 'assigned_to', 'created_by', 'completed_at', 'completed_by',
 ])]
 class Task extends Model
@@ -23,6 +24,7 @@ class Task extends Model
     {
         return [
             'points' => 'integer',
+            'hero_class' => HeroClass::class,
             'recurrence_type' => RecurrenceType::class,
             'recurrence_interval' => 'integer',
             'due_date' => 'date',

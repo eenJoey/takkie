@@ -44,6 +44,10 @@
                                             <span>•</span>
                                         @endif
                                         <span>{{ $task->recurrenceLabel() }}</span>
+                                        @if ($task->hero_class)
+                                            <span>•</span>
+                                            <span title="Klasse">{{ $task->hero_class->emoji() }} {{ $task->hero_class->label() }}</span>
+                                        @endif
                                         <span>•</span>
                                         <span class="inline-flex items-center gap-1">
                                             <x-icon name="user" class="size-3" />
@@ -71,7 +75,7 @@
         <form wire:submit="save" class="space-y-3">
             <div>
                 <x-label for="task-title">Titel</x-label>
-                <x-input id="task-title" wire:model="form.title" required maxlength="120" />
+                <x-input id="task-title" wire:model.blur="form.title" required maxlength="120" />
                 @error('form.title') <p class="mt-1 text-sm text-destructive">{{ $message }}</p> @enderror
             </div>
             <div>
@@ -107,6 +111,17 @@
                         @error('form.recurrenceInterval') <p class="mt-1 text-sm text-destructive">{{ $message }}</p> @enderror
                     </div>
                 @endif
+            </div>
+            <div>
+                <x-label for="task-class">Klasse</x-label>
+                <x-select id="task-class" wire:model="form.heroClass">
+                    <option value="">Geen klasse (geen XP)</option>
+                    @foreach (\App\Enums\HeroClass::cases() as $class)
+                        <option value="{{ $class->value }}">{{ $class->emoji() }} {{ $class->label() }}</option>
+                    @endforeach
+                </x-select>
+                <p class="mt-1 text-xs text-muted-foreground">Afvinken levert XP op in deze klasse van je held.</p>
+                @error('form.heroClass') <p class="mt-1 text-sm text-destructive">{{ $message }}</p> @enderror
             </div>
             <div>
                 <x-label for="task-assignee">Toegewezen aan</x-label>
