@@ -537,8 +537,8 @@
     55%  { left: 40%;    bottom: 70%;    transform: rotate(-15deg) scale(1.05); }
     70%  { left: 75%;    bottom: 45%;    transform: rotate(25deg)  scale(1); }
     85%  { left: 90%;    bottom: 65%;    transform: rotate(-10deg) scale(0.9); }
-    95%  { left: 105%;   bottom: 50%;    transform: rotate(15deg)  scale(0.7); opacity: 0.6; }
-    100% { left: 110%;   bottom: 50%;    transform: rotate(20deg)  scale(0.5); opacity: 0; }
+    95%  { left: calc(100vw - 1rem); bottom: 50%;    transform: rotate(15deg)  scale(0.7); opacity: 0.6; }
+    100% { left: 100vw; bottom: 50%;    transform: rotate(20deg)  scale(0.5); opacity: 0; }
 }
 
 .takkie-egg-enter {
@@ -563,6 +563,6 @@
         10%  { left: 10%;   opacity: 1; }
         50%  { left: 50%;   opacity: 1; }
         90%  { left: 90%;   opacity: 1; }
-        100% { left: 110%;  opacity: 0; }
+        100% { left: 100vw; opacity: 0; }
     }
 }

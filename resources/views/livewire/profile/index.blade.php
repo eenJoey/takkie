@@ -2,17 +2,9 @@
     <x-page-header title="Profiel" subtitle="Beheer je gegevens en voorkeuren." class="lg:col-span-2" />
 
     <section class="space-y-5 rounded-3xl bg-card p-6 shadow-card">
-        <div class="flex items-center gap-4" x-data="{ eggClicks: 0, eggActive: false }" x-on:easter-egg-reset.window="eggClicks = 0; eggActive = false">
+        <div class="flex items-center gap-4" x-data="{ eggClicks: 0, eggActive: false, eggTimer: null, eggGeneration: 0, countEggClick() { this.eggClicks++; if (this.eggClicks >= 10 && !this.eggActive) { this.eggActive = true; const generation = ++this.eggGeneration; clearTimeout(this.eggTimer); this.eggTimer = setTimeout(() => { if (this.eggGeneration === generation) { this.eggActive = false; this.eggClicks = 0; } }, 6000); } } }" x-on:easter-egg-reset.window="clearTimeout(eggTimer); eggGeneration++; eggClicks = 0; eggActive = false">
             <button type="button"
-                x-on:click="
-                    $refs.photo.click();
-                    eggClicks++;
-                    if (eggClicks >= 10 && !eggActive) {
-                        eggActive = true;
-                        $dispatch('toast', { type: 'success', message: '🎉 Je hebt het gevonden!' });
-                        setTimeout(() => { eggActive = false; eggClicks = 0; }, 6000);
-                    }
-                "
+                x-on:click="countEggClick()"
                 class="group relative rounded-full" aria-label="Profielfoto wijzigen">
                 <x-avatar :user="$user" class="size-20 text-2xl" />
                 <span class="absolute inset-0 flex items-center justify-center rounded-full bg-foreground/40 opacity-0 transition group-hover:opacity-100">
@@ -26,8 +18,7 @@
                     class="takkie-egg-ball"
                     x-transition:enter="takkie-egg-enter"
                     x-transition:leave="takkie-egg-leave"
-                    role="img" aria-label="Easter egg: zwevende bol"
-                    aria-live="polite">
+                    aria-hidden="true">
                     <span aria-hidden="true">🌿</span>
                 </div>
             </template>
