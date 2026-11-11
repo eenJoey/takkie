@@ -509,3 +509,60 @@
         background-image: linear-gradient(135deg, var(--background) 0%, var(--screen-end) 100%);
     }
 }
+
+/* Easter egg: zwevende bol op de profielpagina (na 10 klikken op de profielfoto) */
+.takkie-egg-ball {
+    position: fixed;
+    z-index: 50;
+    bottom: 1rem;
+    left: -4rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 9999px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+    box-shadow: 0 4px 20px oklch(0.5 0.1 350 / 0.35);
+    font-size: 1.5rem;
+    pointer-events: none;
+    animation: takkie-egg-float 6s ease-in-out forwards;
+}
+
+@keyframes takkie-egg-float {
+    0%   { left: -4rem;  bottom: 1rem;   transform: rotate(0deg)   scale(0.6); opacity: 0; }
+    8%   { left: 5%;     bottom: 15%;    transform: rotate(30deg)  scale(1);   opacity: 1; }
+    25%  { left: 30%;    bottom: 55%;    transform: rotate(-20deg) scale(1.1); }
+    40%  { left: 55%;    bottom: 30%;    transform: rotate(40deg)  scale(0.95); }
+    55%  { left: 40%;    bottom: 70%;    transform: rotate(-15deg) scale(1.05); }
+    70%  { left: 75%;    bottom: 45%;    transform: rotate(25deg)  scale(1); }
+    85%  { left: 90%;    bottom: 65%;    transform: rotate(-10deg) scale(0.9); }
+    95%  { left: 105%;   bottom: 50%;    transform: rotate(15deg)  scale(0.7); opacity: 0.6; }
+    100% { left: 110%;   bottom: 50%;    transform: rotate(20deg)  scale(0.5); opacity: 0; }
+}
+
+.takkie-egg-enter {
+    animation: takkie-egg-float 6s ease-in-out forwards;
+}
+
+.takkie-egg-leave {
+    animation: none;
+    opacity: 0;
+    transition: opacity 0.3s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .takkie-egg-ball {
+        animation: takkie-egg-reduced 6s ease-in-out forwards;
+    }
+    .takkie-egg-enter {
+        animation: takkie-egg-reduced 6s ease-in-out forwards;
+    }
+    @keyframes takkie-egg-reduced {
+        0%   { left: -4rem; opacity: 0; }
+        10%  { left: 10%;   opacity: 1; }
+        50%  { left: 50%;   opacity: 1; }
+        90%  { left: 90%;   opacity: 1; }
+        100% { left: 110%;  opacity: 0; }
+    }
+}

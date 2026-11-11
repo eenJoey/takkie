@@ -2,13 +2,35 @@
     <x-page-header title="Profiel" subtitle="Beheer je gegevens en voorkeuren." class="lg:col-span-2" />
 
     <section class="space-y-5 rounded-3xl bg-card p-6 shadow-card">
-        <div class="flex items-center gap-4" x-data>
-            <button type="button" x-on:click="$refs.photo.click()" class="group relative rounded-full" aria-label="Profielfoto wijzigen">
+        <div class="flex items-center gap-4" x-data="{ eggClicks: 0, eggActive: false }" x-on:easter-egg-reset.window="eggClicks = 0; eggActive = false">
+            <button type="button"
+                x-on:click="
+                    $refs.photo.click();
+                    eggClicks++;
+                    if (eggClicks >= 10 && !eggActive) {
+                        eggActive = true;
+                        $dispatch('toast', { type: 'success', message: '🎉 Je hebt het gevonden!' });
+                        setTimeout(() => { eggActive = false; eggClicks = 0; }, 6000);
+                    }
+                "
+                class="group relative rounded-full" aria-label="Profielfoto wijzigen">
                 <x-avatar :user="$user" class="size-20 text-2xl" />
                 <span class="absolute inset-0 flex items-center justify-center rounded-full bg-foreground/40 opacity-0 transition group-hover:opacity-100">
                     <x-icon name="camera" class="size-6 text-background" />
                 </span>
             </button>
+
+            {{-- Easter egg: zwevende bol na 10 klikken op de profielfoto --}}
+            <template x-teleport="body">
+                <div x-show="eggActive" x-cloak
+                    class="takkie-egg-ball"
+                    x-transition:enter="takkie-egg-enter"
+                    x-transition:leave="takkie-egg-leave"
+                    role="img" aria-label="Easter egg: zwevende bol"
+                    aria-live="polite">
+                    <span aria-hidden="true">🌿</span>
+                </div>
+            </template>
             <div>
                 <x-button variant="outline" class="rounded-full" x-on:click="$refs.photo.click()" wire:loading.attr="disabled" wire:target="photo">
                     <span wire:loading.remove wire:target="photo">Foto wijzigen</span>
