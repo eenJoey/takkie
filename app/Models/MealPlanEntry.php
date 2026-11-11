@@ -17,6 +17,8 @@ class MealPlanEntry extends Model
     {
         return [
             'date' => 'date',
+            // strikt int, ook op drivers die strings teruggeven (de kok-select vergelijkt met ===)
+            'cook_id' => 'integer',
         ];
     }
 

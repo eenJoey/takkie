@@ -109,6 +109,15 @@ class WeekMenuTest extends TestCase
         $this->assertSame(0, MealPlanEntry::count());
     }
 
+    public function test_cook_id_is_an_int_after_loading_from_the_database(): void
+    {
+        $entry = MealPlanEntry::create(['date' => TodayDate::iso(), 'title' => 'Pizza', 'cook_id' => (string) $this->user->id]);
+
+        $this->assertSame($this->user->id, $entry->fresh()->cook_id);
+        // SQLite geeft al ints terug; de cast borgt dit ook voor drivers die strings teruggeven
+        $this->assertSame('integer', $entry->getCasts()['cook_id'] ?? null);
+    }
+
     public function test_cook_must_be_member_of_own_household_and_day_must_have_a_meal(): void
     {
         $stranger = User::factory()->create(['name' => 'Buurman']);
