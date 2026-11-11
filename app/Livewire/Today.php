@@ -93,7 +93,7 @@ class Today extends Component
     /** Wat er op het weekmenu staat voor de getoonde dag. */
     public function meal(): ?MealPlanEntry
     {
-        return MealPlanEntry::with('recipe')->whereDate('date', $this->shown->toDateString())->first();
+        return MealPlanEntry::with(['recipe', 'cook'])->whereDate('date', $this->shown->toDateString())->first();
     }
 
     /** 🔥 dagen op rij een taak gedaan (zie App\Support\Streak). */

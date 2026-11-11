@@ -56,7 +56,7 @@ class Index extends Component
 
     public function menuToday(): ?MealPlanEntry
     {
-        return MealPlanEntry::whereDate('date', Today::iso())->with('recipe')->first();
+        return MealPlanEntry::whereDate('date', Today::iso())->with(['recipe', 'cook'])->first();
     }
 
     /** @return Collection<int, array{user: User, level: int, best: ?ClassProgress}> */

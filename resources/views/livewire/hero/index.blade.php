@@ -42,7 +42,7 @@
                 <p class="text-xs text-muted-foreground">
                     Recept van het weekmenu +15 XP · voor het eerst gekookt +20 XP.
                     @if ($menu)
-                        Vandaag op het menu: {{ $menu->recipe?->title ?? $menu->title }}.
+                        Vandaag op het menu: {{ $menu->recipe?->title ?? $menu->title }}{{ $menu->cook ? ', '.$menu->cook->name.' kookt' : '' }}.
                     @endif
                 </p>
                 <x-button class="w-full rounded-full" wire:click="cook" wire:loading.attr="disabled" wire:target="cook">

@@ -81,4 +81,62 @@ class WeekMenuTest extends TestCase
         Livewire::test(WeekMenu::class)->call('chooseFree', '2026-02-30', 'x')->assertStatus(422);
         $this->assertSame(0, MealPlanEntry::withoutGlobalScopes()->count());
     }
+
+    public function test_a_household_member_can_be_chosen_as_cook_and_reset_to_nobody(): void
+    {
+        $partner = User::factory()->create(['name' => 'Sanne']);
+        $this->household->addMember($partner);
+        $today = TodayDate::iso();
+
+        Livewire::test(WeekMenu::class)
+            ->call('chooseFree', $today, 'Pizza')
+            ->assertSee('Sanne kookt')
+            ->call('chooseCook', $today, $partner->id)
+            ->assertHasNoErrors();
+
+        $this->assertSame($partner->id, MealPlanEntry::whereDate('date', $today)->value('cook_id'));
+
+        // blijft staan na herladen, ook als het gerecht wordt vervangen
+        Livewire::test(WeekMenu::class)->call('chooseFree', $today, 'Soep');
+        $this->assertSame($partner->id, MealPlanEntry::whereDate('date', $today)->value('cook_id'));
+        $this->assertSame($partner->id, Livewire::test(WeekMenu::class)->instance()->entries()->get($today)->cook->id);
+
+        Livewire::test(WeekMenu::class)->call('chooseCook', $today, null);
+        $this->assertNull(MealPlanEntry::whereDate('date', $today)->value('cook_id'));
+
+        Livewire::test(WeekMenu::class)->call('clearDay', $today);
+        $this->assertSame(0, MealPlanEntry::count());
+    }
+
+    public function test_cook_must_be_member_of_own_household_and_day_must_have_a_meal(): void
+    {
+        $stranger = User::factory()->create();
+        app(CreateHousehold::class)->handle($stranger, 'Buren');
+        $this->actingAs($this->user);
+        $today = TodayDate::iso();
+
+        // dag zonder gerecht: geen losse kok
+        Livewire::test(WeekMenu::class)->call('chooseCook', $today, $this->user->id)->assertStatus(422);
+        $this->assertSame(0, MealPlanEntry::count());
+
+        Livewire::test(WeekMenu::class)
+            ->call('chooseFree', $today, 'Pizza')
+            ->assertDontSee($stranger->name.' kookt')
+            ->call('chooseCook', $today, $stranger->id)
+            ->assertStatus(422);
+
+        $this->assertNull(MealPlanEntry::whereDate('date', $today)->value('cook_id'));
+    }
+
+    public function test_cook_is_shown_on_today_and_hero(): void
+    {
+        Livewire::test(WeekMenu::class)->call('chooseFree', TodayDate::iso(), 'Pizza');
+        Livewire::test(Today::class)->assertSee('Pizza')->assertDontSee('kookt');
+
+        $this->user->update(['name' => 'Joris']);
+        Livewire::test(WeekMenu::class)->call('chooseCook', TodayDate::iso(), $this->user->id);
+
+        Livewire::test(Today::class)->assertSee('Joris kookt');
+        $this->get(route('hero'))->assertOk()->assertSee('Pizza, Joris kookt');
+    }
 }

@@ -62,6 +62,12 @@
                 <span class="block text-xs font-semibold text-muted-foreground">Eten</span>
                 <span class="block truncate font-bold">{{ $meal?->recipe?->title ?? $meal?->title ?? 'Nog niets gepland' }}</span>
             </span>
+            @if ($meal?->cook)
+                <span class="flex min-w-0 items-center gap-2 text-sm text-muted-foreground">
+                    <x-avatar :user="$meal->cook" class="size-8 text-sm" />
+                    <span class="truncate">{{ $meal->cook->name }} kookt</span>
+                </span>
+            @endif
             <x-icon name="arrow-right" class="text-muted-foreground" />
         </a>
 

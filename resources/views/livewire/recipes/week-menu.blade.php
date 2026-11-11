@@ -54,6 +54,21 @@
                             <span class="sr-only">Leeg maken</span>
                         </x-button>
                     </div>
+                    {{-- wie kookt er? leden van het huishouden, of niemand --}}
+                    <div class="flex items-center gap-2">
+                        @if ($entry->cook)
+                            <x-avatar :user="$entry->cook" class="size-8 text-sm" />
+                        @else
+                            <span class="flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-sm" aria-hidden="true">🧑‍🍳</span>
+                        @endif
+                        <x-select aria-label="Wie kookt er op {{ $day->locale('nl')->translatedFormat('l') }}?"
+                            x-on:change="$wire.chooseCook('{{ $date }}', $event.target.value ? Number($event.target.value) : null)">
+                            <option value="" @selected($entry->cook_id === null)>Nog niemand kookt</option>
+                            @foreach ($this->members as $member)
+                                <option value="{{ $member->id }}" @selected($entry->cook?->is($member))>{{ $member->name }} kookt</option>
+                            @endforeach
+                        </x-select>
+                    </div>
                 @else
                     {{-- dropdown met de eigen recepten, of vrij invullen --}}
                     <div x-data="{ free: false, text: '' }" class="space-y-2">
