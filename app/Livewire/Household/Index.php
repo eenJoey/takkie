@@ -5,8 +5,10 @@ namespace App\Livewire\Household;
 use App\Actions\CreateHousehold;
 use App\Models\Household;
 use App\Models\HouseholdInvite;
+use App\Models\MealPlanEntry;
 use App\Support\CurrentHousehold;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
@@ -73,7 +75,14 @@ class Index extends Component
         $this->authorize('leave', $household);
 
         $user = auth()->user();
-        $household->users()->detach($user->id);
+        DB::transaction(function () use ($household, $user): void {
+            $household->users()->detach($user->id);
+            // een ex-lid kookt niet meer in dit huishouden (weekmenu, Vandaag, hero)
+            MealPlanEntry::withoutGlobalScopes()
+                ->where('household_id', $household->id)
+                ->where('cook_id', $user->id)
+                ->update(['cook_id' => null]);
+        });
         $user->forceFill(['current_household_id' => null])->save();
         app(CurrentHousehold::class)->forget();
 

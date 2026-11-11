@@ -66,7 +66,7 @@ class WeekMenu extends Component
     #[Computed]
     public function members(): Collection
     {
-        return app(CurrentHousehold::class)->get()->users()->orderBy('name')->get();
+        return app(CurrentHousehold::class)->get()?->users()->orderBy('name')->get() ?? collect();
     }
 
     public function chooseRecipe(string $date, int $recipeId): void
@@ -87,14 +87,29 @@ class WeekMenu extends Component
         $this->save($date, ['recipe_id' => null, 'title' => $title]);
     }
 
-    /** Kok voor een dag met een gerecht kiezen; null = niemand. Alleen leden van het eigen huishouden. */
-    public function chooseCook(string $date, ?int $userId): void
+    /**
+     * Kok voor een dag met een gerecht kiezen; null of '' = niemand. Alleen leden van het eigen huishouden.
+     * Alles wat ongeldig is (geen gerecht, geen lid, geen id) geeft 422, geen 500.
+     */
+    public function chooseCook(string $date, mixed $userId): void
     {
-        $entry = MealPlanEntry::whereDate('date', $this->validDate($date))->first();
-        abort_unless($entry, 422);
-        abort_unless($userId === null || app(CurrentHousehold::class)->get()->users()->whereKey($userId)->exists(), 422);
+        $date = $this->validDate($date);
 
-        $entry->update(['cook_id' => $userId]);
+        $cookId = match (true) {
+            $userId === null, $userId === '' => null,
+            is_int($userId) && $userId > 0 => $userId,
+            is_string($userId) && ctype_digit($userId) => (int) $userId,
+            default => abort(422),
+        };
+
+        $household = app(CurrentHousehold::class)->get();
+        abort_unless($household, 422);
+
+        $entry = MealPlanEntry::whereDate('date', $date)->first();
+        abort_unless($entry, 422);
+        abort_unless($cookId === null || $household->users()->whereKey($cookId)->exists(), 422);
+
+        $entry->update(['cook_id' => $cookId]);
         unset($this->entries);
     }
 

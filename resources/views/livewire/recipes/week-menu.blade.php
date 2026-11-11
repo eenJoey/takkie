@@ -61,11 +61,12 @@
                         @else
                             <span class="flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-sm" aria-hidden="true">🧑‍🍳</span>
                         @endif
-                        <x-select aria-label="Wie kookt er op {{ $day->locale('nl')->translatedFormat('l') }}?"
-                            x-on:change="$wire.chooseCook('{{ $date }}', $event.target.value ? Number($event.target.value) : null)">
+                        {{-- data-saved = wat de server heeft; bij een fout (bijv. 422) springt de select daarnaar terug --}}
+                        <x-select aria-label="Wie kookt er op {{ $day->locale('nl')->translatedFormat('l') }}?" data-saved="{{ $entry->cook_id }}"
+                            x-on:change="const el = $event.target; $wire.chooseCook('{{ $date }}', el.value ? Number(el.value) : null).catch(() => el.value = el.dataset.saved)">
                             <option value="" @selected($entry->cook_id === null)>Nog niemand kookt</option>
                             @foreach ($this->members as $member)
-                                <option value="{{ $member->id }}" @selected($entry->cook?->is($member))>{{ $member->name }} kookt</option>
+                                <option value="{{ $member->id }}" @selected($entry->cook_id === $member->id)>{{ $member->name }} kookt</option>
                             @endforeach
                         </x-select>
                     </div>
